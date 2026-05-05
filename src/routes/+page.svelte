@@ -8,15 +8,14 @@
 	import ResultsGrid from '$lib/components/ResultsGrid.svelte';
 	import { buildPrompt, DEFAULT_SETTINGS } from '$lib/prompt.js';
 	import { generateMockups } from '$lib/client/api.js';
-	import { readFileAsBase64 } from '$lib/file.js';
 	import { readString, readJSON, writeString, writeJSON, STORAGE_KEYS } from '$lib/storage.js';
 
 	let apiKey = $state('');
 	let model = $state('gemini-3-pro-image-preview');
 	let modelOptions = $state(/** @type {{value:string,label:string}[]} */ ([]));
 
-	/** @type {File | null} */
-	let file = $state(null);
+	/** @type {{mimeType:string,data:string} | null} */
+	let image = $state(null);
 	let previewUrl = $state('');
 
 	let settings = $state({ ...DEFAULT_SETTINGS });
@@ -47,16 +46,15 @@
 	$effect(() => writeJSON(STORAGE_KEYS.settings, settings));
 
 	const canGenerate = $derived(
-		!!apiKey && !!model && !!file && !!promptText.trim() && !generating
+		!!apiKey && !!model && !!image && !!promptText.trim() && !generating
 	);
 
 	async function generate() {
-		if (!canGenerate || !file) return;
+		if (!canGenerate || !image) return;
 		generating = true;
 		error = '';
 		results = [];
 		try {
-			const image = await readFileAsBase64(file);
 			results = await generateMockups({
 				apiKey,
 				model,
@@ -94,7 +92,7 @@
 	</section>
 
 	<section class="card row">
-		<ImageDropzone bind:file bind:previewUrl />
+		<ImageDropzone bind:image bind:previewUrl />
 	</section>
 
 	<section class="card row">
@@ -122,7 +120,7 @@
 
 		{#if !apiKey}
 			<div class="hint">Add your Google AI Studio API key above to start.</div>
-		{:else if !file}
+		{:else if !image}
 			<div class="hint">Upload a tattoo design to enable generation.</div>
 		{/if}
 
