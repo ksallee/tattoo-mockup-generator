@@ -4,21 +4,25 @@
 	let {
 		images = /** @type {{mimeType:string,data:string}[]} */ ([]),
 		loading = false,
-		count = 2
+		count = 2,
+		aspectRatio = '1:1'
 	} = $props();
 
 	/** @type {{mimeType:string,data:string} | null} */
 	let lightbox = $state(null);
+
+	// Translate "9:16" → "9 / 16" for CSS aspect-ratio.
+	const tileAspect = $derived(aspectRatio.replace(':', ' / '));
 </script>
 
 <div class="grid" style:--cols={Math.min(count, 2)}>
 	{#if loading}
 		{#each Array(count) as _, i (i)}
-			<div class="tile skeleton" aria-busy="true"></div>
+			<div class="tile skeleton" style:aspect-ratio={tileAspect} aria-busy="true"></div>
 		{/each}
 	{:else}
 		{#each images as img, i (i)}
-			<div class="tile">
+			<div class="tile" style:aspect-ratio={tileAspect}>
 				<button
 					type="button"
 					class="img-btn"
@@ -63,7 +67,6 @@
 		background: var(--color-neutral-100);
 		border-radius: var(--radius-lg);
 		overflow: hidden;
-		aspect-ratio: 1;
 		box-shadow: var(--shadow-sm);
 	}
 	.img-btn {
@@ -76,7 +79,8 @@
 	.img-btn img {
 		width: 100%;
 		height: 100%;
-		object-fit: cover;
+		object-fit: contain;
+		background: var(--color-neutral-100);
 	}
 	.dl {
 		position: absolute;

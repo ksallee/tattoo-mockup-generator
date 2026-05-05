@@ -26,13 +26,14 @@ export async function fetchModels(apiKey) {
  * @param {string} args.prompt
  * @param {{mimeType:string,data:string}} args.image
  * @param {number} args.count
+ * @param {string} [args.aspectRatio]
  * @returns {Promise<{mimeType:string,data:string}[]>}
  */
-export async function generateMockups({ apiKey, model, prompt, image, count }) {
+export async function generateMockups({ apiKey, model, prompt, image, count, aspectRatio }) {
 	const res = await fetch('/api/generate', {
 		method: 'POST',
 		headers: { 'content-type': 'application/json' },
-		body: JSON.stringify({ apiKey, model, prompt, image, count })
+		body: JSON.stringify({ apiKey, model, prompt, image, count, aspectRatio })
 	});
 	const data = await res.json().catch(() => ({}));
 	if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);

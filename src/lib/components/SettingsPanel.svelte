@@ -1,46 +1,181 @@
 <script>
-	import { SIZES, INKS, MODELS, BODY_PARTS, BACKGROUNDS } from '$lib/prompt.js';
+	import {
+		SIZES,
+		INKS,
+TATTOO_STATES,
+		ORIENTATIONS,
+		MODELS,
+		SKIN_TONES,
+		AGE_BRACKETS,
+		BODY_TYPES,
+		EXISTING_TATTOOS,
+		BODY_PARTS,
+		FRAMINGS,
+		CAMERA_ANGLES,
+		ASPECT_RATIOS,
+		LIGHTING_PRESETS,
+		BACKGROUNDS,
+		PHOTO_STYLES,
+		COLOR_GRADES,
+		POSES,
+		ACCESSORIES,
+		SKIN_DETAILS,
+		ATMOSPHERE
+	} from '$lib/prompt.js';
+	import { pickOne, pickN, randInt } from '$lib/random.js';
+	import Collapsible from './Collapsible.svelte';
+	import ChipGroup from './ChipGroup.svelte';
+	import MultiChipGroup from './MultiChipGroup.svelte';
+	import Chip from './Chip.svelte';
+	import InkPicker from './InkPicker.svelte';
 
 	let { settings = $bindable(), count = $bindable(2) } = $props();
+
+	/**
+	 * @param {{value:string,label:string}[]} list
+	 * @param {string} value
+	 */
+	function labelFor(list, value) {
+		return list.find((o) => o.value === value)?.label ?? value;
+	}
+
+	const COUNT_OPTIONS = [
+		{ value: 1, label: '1' },
+		{ value: 2, label: '2' },
+		{ value: 3, label: '3' },
+		{ value: 4, label: '4' }
+	];
+
+	function randomizeTattoo() {
+		settings.ink = pickOne(INKS);
+		settings.size = pickOne(SIZES);
+		settings.state = pickOne(TATTOO_STATES, ['auto']);
+		settings.orientation = pickOne(ORIENTATIONS, ['auto']);
+	}
+
+	function randomizeSubject() {
+		settings.bodyPart = pickOne(BODY_PARTS);
+		settings.model = pickOne(MODELS, ['either']);
+		settings.skinTone = pickOne(SKIN_TONES, ['auto']);
+		settings.ageBracket = pickOne(AGE_BRACKETS, ['auto']);
+		settings.bodyType = pickOne(BODY_TYPES, ['auto']);
+		settings.existingTattoos = pickOne(EXISTING_TATTOOS);
+	}
+
+	function randomizePhoto() {
+		settings.framing = pickOne(FRAMINGS);
+		settings.cameraAngle = pickOne(CAMERA_ANGLES, ['auto']);
+		settings.aspectRatio = pickOne(ASPECT_RATIOS);
+		settings.lighting = pickOne(LIGHTING_PRESETS);
+		settings.background = pickOne(BACKGROUNDS);
+		settings.photoStyle = pickOne(PHOTO_STYLES, ['auto']);
+		settings.colorGrade = pickOne(COLOR_GRADES, ['auto']);
+	}
+
+	function randomizeDetails() {
+		const all = [...POSES, ...ACCESSORIES, ...SKIN_DETAILS, ...ATMOSPHERE];
+		settings.details = pickN(all, randInt(2, 5));
+	}
+
+	function randomizeAll() {
+		randomizeTattoo();
+		randomizeSubject();
+		randomizePhoto();
+		randomizeDetails();
+	}
 </script>
 
-<div class="grid">
-	<div class="field">
-		<label class="field-label" for="ink-select">Style</label>
-		<select id="ink-select" class="select" bind:value={settings.ink}>
-			{#each INKS as o}<option value={o.value}>{o.label}</option>{/each}
-		</select>
+<div class="panel">
+	<div class="panel-actions">
+		<button type="button" class="btn btn-ghost" onclick={randomizeAll}>
+			<iconify-icon icon="lucide:dices"></iconify-icon>
+			Randomize all
+		</button>
+	</div>
+
+	<Collapsible
+		title="Tattoo"
+		summary={[
+			labelFor(INKS, settings.ink),
+			labelFor(SIZES, settings.size),
+			labelFor(TATTOO_STATES, settings.state)
+		].join(' · ')}
+		randomize={randomizeTattoo}
+		randomizeLabel="Randomize Tattoo"
+	>
+		<InkPicker bind:value={settings.ink} />
+		<ChipGroup label="Size" options={SIZES} bind:value={settings.size} />
+		<ChipGroup label="State" options={TATTOO_STATES} bind:value={settings.state} />
+		<ChipGroup label="Orientation" options={ORIENTATIONS} bind:value={settings.orientation} />
+	</Collapsible>
+
+	<Collapsible
+		title="Subject"
+		summary={[
+			labelFor(BODY_PARTS, settings.bodyPart),
+			labelFor(MODELS, settings.model),
+			labelFor(SKIN_TONES, settings.skinTone)
+		].join(' · ')}
+		randomize={randomizeSubject}
+		randomizeLabel="Randomize Subject"
+	>
+		<ChipGroup label="Body part" options={BODY_PARTS} bind:value={settings.bodyPart} />
+		<ChipGroup label="Model" options={MODELS} bind:value={settings.model} />
+		<ChipGroup label="Skin tone" options={SKIN_TONES} bind:value={settings.skinTone} />
+		<ChipGroup label="Age" options={AGE_BRACKETS} bind:value={settings.ageBracket} />
+		<ChipGroup label="Body type" options={BODY_TYPES} bind:value={settings.bodyType} />
+		<ChipGroup
+			label="Existing tattoos"
+			options={EXISTING_TATTOOS}
+			bind:value={settings.existingTattoos}
+		/>
+	</Collapsible>
+
+	<Collapsible
+		title="Photo"
+		summary={[
+			labelFor(FRAMINGS, settings.framing).split(',')[0],
+			settings.aspectRatio,
+			labelFor(BACKGROUNDS, settings.background)
+		].join(' · ')}
+		randomize={randomizePhoto}
+		randomizeLabel="Randomize Photo"
+	>
+		<ChipGroup label="Framing" options={FRAMINGS} bind:value={settings.framing} />
+		<ChipGroup label="Camera angle" options={CAMERA_ANGLES} bind:value={settings.cameraAngle} />
+		<ChipGroup label="Aspect ratio" options={ASPECT_RATIOS} bind:value={settings.aspectRatio} />
+		<ChipGroup label="Lighting" options={LIGHTING_PRESETS} bind:value={settings.lighting} />
+		<ChipGroup label="Background" options={BACKGROUNDS} bind:value={settings.background} />
+		<ChipGroup label="Photo style" options={PHOTO_STYLES} bind:value={settings.photoStyle} />
+		<ChipGroup label="Color grade" options={COLOR_GRADES} bind:value={settings.colorGrade} />
+	</Collapsible>
+
+	<Collapsible
+		title="Details (multi-select)"
+		summary={settings.details.length
+			? `${settings.details.length} selected`
+			: 'pose · accessories · skin · atmosphere'}
+		randomize={randomizeDetails}
+		randomizeLabel="Randomize Details"
+	>
+		<MultiChipGroup label="Pose / angle" options={POSES} bind:values={settings.details} />
+		<MultiChipGroup
+			label="Accessories / clothing"
+			options={ACCESSORIES}
+			bind:values={settings.details}
+		/>
+		<MultiChipGroup label="Skin" options={SKIN_DETAILS} bind:values={settings.details} />
+		<MultiChipGroup label="Atmosphere" options={ATMOSPHERE} bind:values={settings.details} />
+	</Collapsible>
+
+	<div class="row toggles">
+		<label class="toggle">
+			<input type="checkbox" bind:checked={settings.stickToIllustration} />
+			<span>Reproduce exactly</span>
+		</label>
 	</div>
 
 	<div class="field">
-		<label class="field-label" for="size-select">Size</label>
-		<select id="size-select" class="select" bind:value={settings.size}>
-			{#each SIZES as o}<option value={o.value}>{o.label}</option>{/each}
-		</select>
-	</div>
-
-	<div class="field">
-		<label class="field-label" for="bodypart-select">Body part</label>
-		<select id="bodypart-select" class="select" bind:value={settings.bodyPart}>
-			{#each BODY_PARTS as o}<option value={o.value}>{o.label}</option>{/each}
-		</select>
-	</div>
-
-	<div class="field">
-		<label class="field-label" for="model-gender-select">Model</label>
-		<select id="model-gender-select" class="select" bind:value={settings.model}>
-			{#each MODELS as o}<option value={o.value}>{o.label}</option>{/each}
-		</select>
-	</div>
-
-	<div class="field span-2">
-		<label class="field-label" for="bg-select">Background</label>
-		<select id="bg-select" class="select" bind:value={settings.background}>
-			{#each BACKGROUNDS as o}<option value={o.value}>{o.label}</option>{/each}
-		</select>
-	</div>
-
-	<div class="field span-2">
 		<label class="field-label" for="extra-input">Extra details (optional)</label>
 		<input
 			id="extra-input"
@@ -51,34 +186,35 @@
 		/>
 	</div>
 
-	<div class="field span-2 toggle-row">
-		<label class="toggle">
-			<input type="checkbox" bind:checked={settings.stickToIllustration} />
-			<span>Reproduce the design exactly (no restyling)</span>
-		</label>
-	</div>
-
-	<div class="field span-2">
-		<div class="field-label">Number of variations</div>
-		<div class="count-row">
-			{#each [1, 2, 3, 4] as n}
-				<label class="count-pill" class:active={count === n}>
-					<input type="radio" name="count" value={n} bind:group={count} />
-					{n}
-				</label>
+	<div class="field">
+		<div class="field-label">Variations</div>
+		<div class="chips">
+			{#each COUNT_OPTIONS as opt (opt.value)}
+				<Chip active={count === opt.value} onclick={() => (count = opt.value)}>
+					{opt.label}
+				</Chip>
 			{/each}
 		</div>
 	</div>
 </div>
 
 <style>
-	.grid {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: var(--space-4);
+	.panel {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-3);
 	}
-	.span-2 {
-		grid-column: 1 / -1;
+	.panel-actions {
+		display: flex;
+		justify-content: flex-end;
+	}
+	.row {
+		display: flex;
+		gap: var(--space-4);
+		flex-wrap: wrap;
+	}
+	.toggles {
+		padding: 0 var(--space-2);
 	}
 	.toggle {
 		display: inline-flex;
@@ -91,38 +227,9 @@
 	.toggle input {
 		accent-color: var(--color-accent);
 	}
-	.count-row {
+	.chips {
 		display: flex;
-		gap: var(--space-2);
-	}
-	.count-pill {
-		flex: 1;
-		text-align: center;
-		padding: 0.5rem;
-		border: 1px solid var(--color-border);
-		border-radius: var(--radius-md);
-		background: var(--color-surface);
-		cursor: pointer;
-		font-weight: var(--font-weight-medium);
-		transition: background 0.15s, border-color 0.15s, color 0.15s;
-	}
-	.count-pill input {
-		display: none;
-	}
-	.count-pill:hover {
-		border-color: var(--color-accent);
-	}
-	.count-pill.active {
-		background: var(--color-primary);
-		border-color: var(--color-primary);
-		color: var(--color-surface);
-	}
-	@media (max-width: 540px) {
-		.grid {
-			grid-template-columns: 1fr;
-		}
-		.span-2 {
-			grid-column: 1;
-		}
+		gap: 0.375rem;
+		flex-wrap: wrap;
 	}
 </style>

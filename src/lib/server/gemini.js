@@ -65,12 +65,13 @@ export async function listImageModels(apiKey) {
  * @param {string} args.prompt
  * @param {InlineImage} args.refImage  base64 (no data: prefix)
  * @param {number} args.count  1..4
+ * @param {string} [args.aspectRatio] e.g. "1:1", "3:4", "9:16" — only honored by Nano Banana Pro
  * @returns {Promise<InlineImage[]>}
  */
-export async function generateTattooMockups({ apiKey, model, prompt, refImage, count }) {
+export async function generateTattooMockups({ apiKey, model, prompt, refImage, count, aspectRatio }) {
 	const n = Math.max(1, Math.min(4, count | 0));
 	const calls = Array.from({ length: n }, () =>
-		generateOne({ apiKey, model, prompt, refImage })
+		generateOne({ apiKey, model, prompt, refImage, aspectRatio })
 	);
 	const results = await Promise.allSettled(calls);
 
@@ -90,11 +91,18 @@ export async function generateTattooMockups({ apiKey, model, prompt, refImage, c
 }
 
 /**
- * @param {{apiKey: string, model: string, prompt: string, refImage: InlineImage}} args
+ * @param {{apiKey: string, model: string, prompt: string, refImage: InlineImage, aspectRatio?: string}} args
  * @returns {Promise<InlineImage>}
  */
-async function generateOne({ apiKey, model, prompt, refImage }) {
+async function generateOne({ apiKey, model, prompt, refImage, aspectRatio }) {
 	const url = `${BASE}/models/${encodeURIComponent(model)}:generateContent`;
+	/** @type {Record<string, any>} */
+	const generationConfig = {
+		responseModalities: ['IMAGE']
+	};
+	if (aspectRatio) {
+		generationConfig.imageConfig = { aspectRatio };
+	}
 	const body = {
 		contents: [
 			{
@@ -105,9 +113,7 @@ async function generateOne({ apiKey, model, prompt, refImage }) {
 				]
 			}
 		],
-		generationConfig: {
-			responseModalities: ['IMAGE']
-		}
+		generationConfig
 	};
 
 	const res = await fetch(url, {

@@ -57,7 +57,14 @@
 		results = [];
 		try {
 			const image = await readFileAsBase64(file);
-			results = await generateMockups({ apiKey, model, prompt: promptText, image, count });
+			results = await generateMockups({
+				apiKey,
+				model,
+				prompt: promptText,
+				image,
+				count,
+				aspectRatio: settings.aspectRatio
+			});
 			if (results.length < count) {
 				error = `Only ${results.length} of ${count} images returned (some calls failed or were filtered).`;
 			}
@@ -78,45 +85,61 @@
 		</p>
 	</header>
 
-	<div class="layout">
-		<section class="card panel left">
-			<ApiKeyField bind:value={apiKey} />
-			<ModelSelect bind:value={model} {apiKey} bind:options={modelOptions} />
-			<ImageDropzone bind:file bind:previewUrl />
-		</section>
+	<section class="card row">
+		<ApiKeyField bind:value={apiKey} />
+	</section>
 
-		<section class="card panel right">
-			<h2 class="panel-title">Mockup settings</h2>
-			<SettingsPanel bind:settings bind:count />
-			<PromptBox bind:value={promptText} autoValue={autoPrompt} bind:dirty={promptDirty} />
+	<section class="card row">
+		<ModelSelect bind:value={model} {apiKey} bind:options={modelOptions} />
+	</section>
 
-			<button
-				type="button"
-				class="btn btn-accent generate"
-				disabled={!canGenerate}
-				onclick={generate}
-			>
-				<iconify-icon icon={generating ? 'lucide:loader-2' : 'lucide:sparkles'} class:spin={generating}
-				></iconify-icon>
-				{generating ? 'Generating…' : `Generate ${count} mockup${count > 1 ? 's' : ''}`}
-			</button>
+	<section class="card row">
+		<ImageDropzone bind:file bind:previewUrl />
+	</section>
 
-			{#if !apiKey}
-				<div class="hint">Add your Google AI Studio API key above to start.</div>
-			{:else if !file}
-				<div class="hint">Upload a tattoo design to enable generation.</div>
-			{/if}
+	<section class="card row">
+		<h2 class="row-title">Mockup settings</h2>
+		<SettingsPanel bind:settings bind:count />
+	</section>
 
-			{#if error}
-				<div class="error">{error}</div>
-			{/if}
-		</section>
-	</div>
+	<section class="card row">
+		<PromptBox bind:value={promptText} autoValue={autoPrompt} bind:dirty={promptDirty} />
+	</section>
+
+	<section class="row generate-row">
+		<button
+			type="button"
+			class="btn btn-accent generate"
+			disabled={!canGenerate}
+			onclick={generate}
+		>
+			<iconify-icon
+				icon={generating ? 'lucide:loader-2' : 'lucide:sparkles'}
+				class:spin={generating}
+			></iconify-icon>
+			{generating ? 'Generating…' : `Generate ${count} mockup${count > 1 ? 's' : ''}`}
+		</button>
+
+		{#if !apiKey}
+			<div class="hint">Add your Google AI Studio API key above to start.</div>
+		{:else if !file}
+			<div class="hint">Upload a tattoo design to enable generation.</div>
+		{/if}
+
+		{#if error}
+			<div class="error">{error}</div>
+		{/if}
+	</section>
 
 	{#if generating || results.length}
-		<section class="card results">
-			<h2 class="panel-title">Results</h2>
-			<ResultsGrid images={results} loading={generating} {count} />
+		<section class="card row">
+			<h2 class="row-title">Results</h2>
+			<ResultsGrid
+				images={results}
+				loading={generating}
+				{count}
+				aspectRatio={settings.aspectRatio}
+			/>
 		</section>
 	{/if}
 
@@ -129,12 +152,12 @@
 
 <style>
 	.page {
-		max-width: 1180px;
+		max-width: 1200px;
 		margin: 0 auto;
 		padding: var(--space-8) var(--space-6);
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-6);
+		gap: var(--space-5);
 	}
 	.hero {
 		text-align: center;
@@ -150,26 +173,29 @@
 		max-width: 36rem;
 		margin: 0 auto;
 	}
-	.layout {
-		display: grid;
-		grid-template-columns: minmax(320px, 1fr) minmax(360px, 1.2fr);
-		gap: var(--space-6);
-		align-items: start;
+	.row {
+		width: 100%;
 	}
-	.panel {
-		padding: var(--space-6);
+	.card.row {
+		padding: var(--space-5) var(--space-6);
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-4);
 	}
-	.panel-title {
+	.row-title {
 		font-family: var(--font-display);
 		font-size: var(--font-size-xl);
-		margin-bottom: var(--space-1);
+		margin: 0;
+	}
+	.generate-row {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--space-3);
 	}
 	.generate {
-		margin-top: var(--space-2);
-		padding: 0.875rem 1rem;
+		min-width: 16rem;
+		padding: 0.875rem 1.5rem;
 		font-size: var(--font-size-base);
 		gap: 0.5rem;
 	}
@@ -199,22 +225,21 @@
 		font-size: var(--font-size-sm);
 		white-space: pre-wrap;
 		word-break: break-word;
-	}
-	.results {
-		padding: var(--space-6);
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-4);
+		max-width: 40rem;
+		text-align: center;
 	}
 	.footer {
 		text-align: center;
 		color: var(--color-text-dimmed);
 		font-size: var(--font-size-xs);
-		padding: var(--space-4) 0;
+		padding: var(--space-4) 0 var(--space-6);
 	}
-	@media (max-width: 880px) {
-		.layout {
-			grid-template-columns: 1fr;
+	@media (max-width: 640px) {
+		.page {
+			padding: var(--space-4) var(--space-3);
+		}
+		.card.row {
+			padding: var(--space-4);
 		}
 	}
 </style>
