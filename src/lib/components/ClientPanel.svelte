@@ -1,6 +1,7 @@
 <script>
 	import { onMount } from 'svelte';
 	import ImageDropzone from './ImageDropzone.svelte';
+	import PlacementMarker from './PlacementMarker.svelte';
 	import PromptBox from './PromptBox.svelte';
 	import ResultsGrid from './ResultsGrid.svelte';
 	import InkPicker from './InkPicker.svelte';
@@ -9,13 +10,12 @@
 	import {
 		buildClientPrompt,
 		DEFAULT_CLIENT_SETTINGS,
-		SIZES,
 		TATTOO_STATES,
-		ORIENTATIONS,
-		BODY_PARTS,
 		ASPECT_RATIOS
 	} from '$lib/prompt.js';
 	import { generateMockups } from '$lib/client/api.js';
+	import { snapToSupportedAspect } from '$lib/file.js';
+	import { compositeMarker, DEFAULT_RECT } from '$lib/placement.js';
 	import { readJSON, writeJSON, STORAGE_KEYS } from '$lib/storage.js';
 
 	let { apiKey, model } = $props();
@@ -24,9 +24,12 @@
 	let design = $state(null);
 	let designPreviewUrl = $state('');
 
-	/** @type {{mimeType:string,data:string} | null} */
-	let bodyPhoto = $state(null);
+	let bodyPhoto = $state(
+		/** @type {{mimeType:string,data:string,width?:number,height?:number} | null} */ (null)
+	);
 	let bodyPreviewUrl = $state('');
+
+	let rect = $state({ ...DEFAULT_RECT });
 
 	let settings = $state({ ...DEFAULT_CLIENT_SETTINGS });
 	let count = $state(2);
@@ -38,6 +41,23 @@
 	$effect(() => {
 		if (!promptDirty) promptText = autoPrompt;
 	});
+
+	// Reset placement when a new body photo is loaded.
+	let lastPhotoId = '';
+	$effect(() => {
+		const id = bodyPhoto?.data?.slice(0, 64) ?? '';
+		if (id !== lastPhotoId) {
+			lastPhotoId = id;
+			rect = { ...DEFAULT_RECT };
+		}
+	});
+
+	const photoAspect = $derived(
+		bodyPhoto ? snapToSupportedAspect(bodyPhoto.width || 0, bodyPhoto.height || 0) : '1:1'
+	);
+	const effectiveAspect = $derived(
+		settings.aspectRatio === 'auto' ? photoAspect : settings.aspectRatio
+	);
 
 	let generating = $state(false);
 	let error = $state('');
@@ -71,18 +91,23 @@
 		generating = true;
 		error = '';
 		results = [];
-		resultMeta = { aspectRatio: settings.aspectRatio, count };
+		resultMeta = { aspectRatio: effectiveAspect, count };
 		try {
+			const marker = await compositeMarker(
+				{ mimeType: bodyPhoto.mimeType, data: bodyPhoto.data },
+				rect
+			);
 			results = await generateMockups({
 				apiKey,
 				model,
 				prompt: promptText,
 				image: design,
 				refImages: [
-					{ role: 'body-scene', mimeType: bodyPhoto.mimeType, data: bodyPhoto.data }
+					{ role: 'body-scene', mimeType: bodyPhoto.mimeType, data: bodyPhoto.data },
+					{ role: 'placement-marker', mimeType: marker.mimeType, data: marker.data }
 				],
 				count,
-				aspectRatio: settings.aspectRatio === 'auto' ? undefined : settings.aspectRatio
+				aspectRatio: effectiveAspect
 			});
 			if (results.length < resultMeta.count) {
 				error = `Only ${results.length} of ${resultMeta.count} images returned (some calls failed or were filtered).`;
@@ -107,24 +132,20 @@
 	<ImageDropzone bind:image={bodyPhoto} bind:previewUrl={bodyPreviewUrl} />
 </section>
 
-<section class="card row">
-	<h2 class="row-title">3. Placement & ink</h2>
+{#if bodyPhoto}
+	<section class="card row">
+		<h2 class="row-title">3. Placement</h2>
+		<p class="hint">Drag, resize, and rotate the marker to set exactly where the tattoo goes.</p>
+		<PlacementMarker image={bodyPhoto} bind:rect />
+	</section>
+{/if}
 
-	<ChipGroup
-		label="Body part"
-		options={BODY_PARTS}
-		bind:value={settings.bodyPart}
-		customsKey="bodyParts"
-		phraseHint="Location for the tattoo, e.g. 'side of the calf'"
-	/>
+<section class="card row">
+	<h2 class="row-title">{bodyPhoto ? '4' : '3'}. Ink &amp; details</h2>
 
 	<InkPicker bind:value={settings.ink} />
 
-	<ChipGroup label="Size" options={SIZES} bind:value={settings.size} />
-
 	<ChipGroup label="State" options={TATTOO_STATES} bind:value={settings.state} />
-
-	<ChipGroup label="Orientation" options={ORIENTATIONS} bind:value={settings.orientation} />
 
 	<ChipGroup label="Aspect ratio" options={ASPECT_OPTIONS} bind:value={settings.aspectRatio} />
 
@@ -189,7 +210,7 @@
 			images={results}
 			loading={generating}
 			count={resultMeta.count}
-			aspectRatio={resultMeta.aspectRatio === 'auto' ? '1:1' : resultMeta.aspectRatio}
+			aspectRatio={resultMeta.aspectRatio}
 		/>
 	</section>
 {/if}

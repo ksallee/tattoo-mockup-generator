@@ -37,7 +37,9 @@ const REF_ROLE_TEXT = {
 	'vibe-mood':
 		'Image {LETTER} — mood / vibe reference. Match the overall atmosphere, energy, and feeling ONLY. Do not copy the content.',
 	'body-scene':
-		'Image {LETTER} — the actual body to place the tattoo on. Apply the tattoo design from image A to this person, matching their existing pose, skin tone, lighting, and skin volume. Preserve their face, body, clothing, and surroundings exactly.'
+		'Image {LETTER} — the actual body to place the tattoo on. Apply the tattoo design from image A to this person, matching their existing pose, skin tone, lighting, and skin volume. Preserve their face, body, clothing, and surroundings exactly.',
+	'placement-marker':
+		'Image {LETTER} — placement marker. The cyan rectangle drawn on this image marks EXACTLY where the tattoo from image A must appear: same position, same size, same rotation as the rectangle. The rest of this image is identical to the body-scene image — use that copy for the actual skin, lighting, and surroundings. DO NOT draw the cyan rectangle in the output; only the tattoo should appear inside the marked region.'
 };
 
 /**

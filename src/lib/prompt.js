@@ -1126,22 +1126,16 @@ export function buildIteratePrompt(s) {
 
 /**
  * @typedef {Object} ClientSettings
- * @property {string} size
  * @property {string} ink              key from INKS
  * @property {string} state            auto | fresh | healed
- * @property {string} orientation      auto | reads-toward-hand | ...
- * @property {string} bodyPart
- * @property {string} aspectRatio      "1:1" | "3:4" | ... ("auto" = match input)
+ * @property {string} aspectRatio      "1:1" | "3:4" | ... ("auto" = match input photo)
  * @property {string} [extra]
  */
 
 /** @type {ClientSettings} */
 export const DEFAULT_CLIENT_SETTINGS = {
-	size: 'small',
 	ink: 'black',
 	state: 'auto',
-	orientation: 'auto',
-	bodyPart: 'inner forearm',
 	aspectRatio: 'auto',
 	extra: ''
 };
@@ -1156,25 +1150,23 @@ export const DEFAULT_CLIENT_SETTINGS = {
  * @returns {string}
  */
 export function buildClientPrompt(s) {
-	const size = sizePhrase(s.size);
 	const ink = inkEntry(s.ink);
-	const bodyPart = chipPhrase(s.bodyPart, BODY_PARTS, 'bodyParts');
 
 	let prompt =
 		'Apply the tattoo design from image A to the actual body shown in image B. ' +
-		`The tattoo must be ${size}, in ${ink.phrase}, placed on the ${bodyPart} of the person in image B. ` +
+		'Image C is the same body photo with a cyan placement-marker rectangle. ' +
+		'Place the tattoo so it fills exactly that rectangle — same position, same size, same rotation as the marker. ' +
+		`Use ${ink.phrase}. ` +
 		'Match the existing pose, skin tone, skin texture, lighting, color grade, depth of field, ' +
 		"and skin volume of image B exactly. Preserve the person's face, hair, body, clothing, " +
-		'jewelry, and surroundings — only the tattoo is added.';
+		'jewelry, and surroundings — only the tattoo is added. ' +
+		'Do NOT draw the cyan rectangle from image C in the output.';
 
-	const orient = ORIENTATION_PHRASE[s.orientation];
-	if (orient) prompt += ` The tattoo is ${orient}.`;
 	const state = STATE_PHRASE[s.state];
 	if (state) prompt += ` ${state}.`;
 
 	if (s.extra && s.extra.trim()) prompt += ` ${s.extra.trim()}.`;
 
-	// Ink emphasis bookend
 	if (ink.value === 'black') {
 		prompt += ' IMPORTANT: the tattoo must be solid black ink only — no color, no greyscale shading.';
 	} else if (ink.value === 'grey-shading') {
@@ -1185,7 +1177,8 @@ export function buildClientPrompt(s) {
 		prompt += ' IMPORTANT: the tattoo must be in color ink, not plain black, even if the source design is plain black.';
 	}
 
-	prompt += ` IMPORTANT: the tattoo must be ${size} — not larger, not smaller — and placed on the ${bodyPart} of image B.`;
+	prompt +=
+		' IMPORTANT: position, size, and rotation come from the cyan rectangle in image C — match it exactly. The output must NOT include the cyan rectangle itself.';
 
 	prompt +=
 		' Reproduce the tattoo design from image A with pixel-perfect fidelity — same shapes, lines, and proportions, without redrawing or restyling. The tattoo should look realistically inked on the real skin in image B with proper ink absorption and slight skin texture. No added captions, no watermark, no signature. Lettering that is part of the design itself is allowed.';

@@ -2,7 +2,9 @@
 	import { downscaleImage } from '$lib/file.js';
 
 	let {
-		image = $bindable(/** @type {{mimeType:string,data:string} | null} */ (null)),
+		image = $bindable(
+			/** @type {{mimeType:string,data:string,width?:number,height?:number} | null} */ (null)
+		),
 		previewUrl = $bindable('')
 	} = $props();
 
