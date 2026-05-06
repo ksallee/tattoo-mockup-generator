@@ -47,5 +47,8 @@ export function writeJSON(key, value) {
 export const STORAGE_KEYS = {
 	apiKey: 'tmg.apiKey',
 	model: 'tmg.model',
-	settings: 'tmg.settings'
+	mode: 'tmg.mode',
+	settings: 'tmg.settings',
+	iterateSettings: 'tmg.iterate.settings',
+	clientSettings: 'tmg.client.settings'
 };

@@ -595,6 +595,170 @@ export const ATMOSPHERE = [
 	{ value: 'string lights bokeh in the background', label: 'String lights' }
 ];
 
+import { readCustoms } from './customs.js';
+
+/**
+ * Tattoo style families for design iteration. Each entry's `phrase` is dropped
+ * verbatim into the iterate prompt so adding/tuning a style only changes this
+ * list. User-added customs are merged in front of this list at build time.
+ */
+export const TATTOO_STYLES = [
+	{ value: 'auto', label: 'Auto', phrase: '' },
+	{
+		value: 'fine-line',
+		label: 'Fine line',
+		phrase: 'fine-line tattoo style with thin delicate single-needle linework'
+	},
+	{
+		value: 'traditional-american',
+		label: 'American traditional',
+		phrase:
+			'American traditional tattoo style with bold black outlines and a limited solid-color palette'
+	},
+	{
+		value: 'neo-traditional',
+		label: 'Neo-traditional',
+		phrase:
+			'neo-traditional tattoo style with bold linework and richer color shading'
+	},
+	{
+		value: 'illustrative',
+		label: 'Illustrative',
+		phrase: 'illustrative tattoo style with painterly detail and texture'
+	},
+	{
+		value: 'blackwork',
+		label: 'Blackwork',
+		phrase: 'blackwork tattoo style with bold solid black areas and high contrast'
+	},
+	{
+		value: 'linework',
+		label: 'Linework only',
+		phrase: 'pure linework tattoo style — outlines only, no fill or shading'
+	},
+	{
+		value: 'dotwork',
+		label: 'Dotwork',
+		phrase: 'dotwork tattoo style with stippled gradients made of fine dots'
+	},
+	{
+		value: 'geometric',
+		label: 'Geometric',
+		phrase: 'geometric tattoo style with precise lines, shapes and symmetry'
+	},
+	{
+		value: 'sacred-geometry',
+		label: 'Sacred geometry',
+		phrase:
+			'sacred-geometry tattoo style with mandala and symmetrical geometric patterns'
+	},
+	{
+		value: 'watercolor',
+		label: 'Watercolor',
+		phrase:
+			'watercolor tattoo style with soft bleeding washes and translucent color'
+	},
+	{
+		value: 'japanese',
+		label: 'Japanese (irezumi)',
+		phrase:
+			'Japanese irezumi tattoo style with traditional motifs, bold black outlines and saturated color'
+	},
+	{
+		value: 'tribal',
+		label: 'Tribal',
+		phrase: 'tribal tattoo style with bold solid black geometric patterns'
+	},
+	{
+		value: 'sketch',
+		label: 'Sketch',
+		phrase:
+			'sketch tattoo style with rough handwritten linework, like pen on paper'
+	},
+	{
+		value: 'etching',
+		label: 'Etching',
+		phrase:
+			'etching/engraving tattoo style with cross-hatching and parallel-line shading'
+	},
+	{
+		value: 'realism',
+		label: 'Realism',
+		phrase: 'realism tattoo style with photographic detail and smooth shading'
+	},
+	{
+		value: 'ornamental',
+		label: 'Ornamental',
+		phrase:
+			'ornamental tattoo style with decorative filigree and lace-like patterns'
+	},
+	{
+		value: 'trash-polka',
+		label: 'Trash polka',
+		phrase:
+			'trash-polka tattoo style mixing realism with red graphic elements and splatters'
+	},
+	{
+		value: 'micro-realism',
+		label: 'Micro-realism',
+		phrase: 'micro-realism tattoo style with tiny photographic detail'
+	}
+];
+
+/**
+ * Curated background-color swatches for the design-iterate panel. Each entry
+ * pairs a hex value with a friendly name we inject into the prompt, so the
+ * model gets both ("warm ivory off-white (hex #f5f1e8)").
+ */
+export const BACKGROUND_COLORS = [
+	{ value: '#ffffff', label: 'White', name: 'pure white' },
+	{ value: '#f5f1e8', label: 'Ivory', name: 'warm ivory off-white' },
+	{ value: '#f0e6d2', label: 'Vellum', name: 'warm vellum cream' },
+	{ value: '#d4b896', label: 'Kraft', name: 'kraft paper tan' },
+	{ value: '#e5e7eb', label: 'Light grey', name: 'soft light grey' },
+	{ value: '#9ca3af', label: 'Mid grey', name: 'neutral mid grey' },
+	{ value: '#1f2937', label: 'Charcoal', name: 'deep charcoal' },
+	{ value: '#000000', label: 'Black', name: 'pure black' },
+	{ value: '#a7b89a', label: 'Sage', name: 'muted sage green' },
+	{ value: '#c87760', label: 'Terracotta', name: 'warm terracotta' },
+	{ value: '#d9a89a', label: 'Dusty pink', name: 'dusty pink' },
+	{ value: '#1e3a5f', label: 'Navy', name: 'deep navy blue' },
+	{ value: '#f5d780', label: 'Butter', name: 'soft butter yellow' },
+	{ value: '#7c2d12', label: 'Burgundy', name: 'rich burgundy' }
+];
+
+/**
+ * Faithfulness scale for design iteration. 5 = exact reproduction, 1 = wild
+ * reinterpretation. Both the intent line (early in the prompt) and the closer
+ * (end of prompt) are tuned per level so the user gets a smooth axis from
+ * "same design, varied rendering" to "loose creative riff on the subject".
+ */
+export const FAITHFULNESS_LEVELS = [
+	{ value: 1, label: 'Wild', hint: 'Loose riff — only the subject or motif must remain' },
+	{ value: 2, label: 'Free', hint: 'Free recomposition — same theme, new layout' },
+	{ value: 3, label: 'Balanced', hint: 'Clear variations, source still recognizable' },
+	{ value: 4, label: 'Faithful', hint: 'Same design, vary rendering and small details' },
+	{ value: 5, label: 'Exact', hint: 'Pixel-perfect reproduction, only style changes' }
+];
+
+/** @type {Record<number, string>} */
+const FAITHFULNESS_INTENT = {
+	1: 'Use the reference image as loose inspiration only — preserve the subject or motif but reinterpret it freely, with new compositions and bold creative liberties.',
+	2: 'Use the reference image as creative inspiration — keep the subject and theme, but recompose the design freely with alternative layouts and complementary elements.',
+	3: 'Use the reference image as a strong basis — keep the subject and overall composition, but allow noticeable variations in rendering, line treatment, and ornamental details.',
+	4: 'Reproduce the design from the reference image with high fidelity — preserve composition and key elements, allowing only minor stylistic variations in linework and detail.',
+	5: 'Reproduce the EXACT design from the reference image with pixel-perfect fidelity — preserve every shape, line, proportion and compositional detail.'
+};
+
+/** @type {Record<number, string>} */
+const FAITHFULNESS_CLOSER = {
+	1: ' WILD REINTERPRETATION: reinterpret the source freely — only the subject or motif needs to remain.',
+	2: ' FREE REINTERPRETATION: recompose with confidence while keeping the subject and mood.',
+	3: ' BALANCED VARIATION: clear variations are welcome, but the source design must remain recognizable.',
+	4: ' HIGH FIDELITY: keep the design recognizably the same, vary only rendering and small details.',
+	5: ' STRICT FIDELITY: reproduce the source design exactly. Only the rendering style and background change.'
+};
+
 // ── Phrase maps ─────────────────────────────────────────────────────────────
 
 /** @param {string} value */
@@ -775,9 +939,9 @@ export function buildPrompt(s) {
 	// asked for clean skin. If they picked an existing-tattoos style, allow it.
 	if (s.existingTattoos === 'none') {
 		prompt +=
-			'. Clean skin, no other tattoos visible, no jewelry beyond what is specified, no text, no watermark.';
+			'. Clean skin, no other tattoos visible, no jewelry beyond what is specified, no added captions, no watermark, no signature. Lettering that is part of the tattoo design itself is allowed.';
 	} else {
-		prompt += '. No text, no watermark.';
+		prompt += '. No added captions, no watermark, no signature. Lettering that is part of the tattoo design itself is allowed.';
 	}
 
 	// Color emphasis: bookend the ink instruction so the model actually
@@ -804,6 +968,126 @@ export function buildPrompt(s) {
 		prompt +=
 			' The tattoo should look realistically inked on the skin with proper ink absorption and slight skin texture.';
 	}
+
+	return prompt;
+}
+
+// ── Iterate settings + builder ─────────────────────────────────────────────
+
+/**
+ * @typedef {Object} IterateSettings
+ * @property {number} faithfulness       1..5 — see FAITHFULNESS_LEVELS
+ * @property {string} ink                key from INKS
+ * @property {string} tattooStyle        key from TATTOO_STYLES (or 'auto')
+ * @property {string} aspectRatio        "1:1" | "3:4" | ...
+ * @property {string} backgroundColor    hex like "#f5f1e8"
+ * @property {number} designsPerSheet    1..10 — designs in a single output image
+ * @property {string} [extra]
+ */
+
+/** @type {IterateSettings} */
+export const DEFAULT_ITERATE_SETTINGS = {
+	faithfulness: 4,
+	ink: 'black',
+	tattooStyle: 'auto',
+	aspectRatio: '1:1',
+	backgroundColor: '#f5f1e8',
+	designsPerSheet: 1,
+	extra: ''
+};
+
+/**
+ * @param {string} hex
+ * @returns {string} prompt-ready phrase ("warm ivory off-white (hex #f5f1e8)")
+ */
+function backgroundPhrase(hex) {
+	const norm = (hex || '').toLowerCase();
+	const known = BACKGROUND_COLORS.find((c) => c.value.toLowerCase() === norm);
+	if (known) return `${known.name} (hex ${norm})`;
+	return `solid color hex ${norm}`;
+}
+
+/**
+ * Build the prompt for design iteration. Output must be a flat 2D illustration
+ * on a colored paper background — like a scanned tattoo flash sheet page —
+ * with NO body, NO skin, NO scene. The model is biased toward photographic
+ * output, so the prompt leads with "flat illustration, not a photograph"
+ * and stacks negatives at the end.
+ *
+ * @param {IterateSettings} s
+ * @returns {string}
+ */
+export function buildIteratePrompt(s) {
+	const ink = inkEntry(s.ink);
+	const allTattooStyles = [...readCustoms('tattooStyles'), ...TATTOO_STYLES];
+	const style = allTattooStyles.find((t) => t.value === s.tattooStyle)?.phrase || '';
+	const bg = backgroundPhrase(s.backgroundColor);
+	const n = Math.max(1, Math.min(10, Number(s.designsPerSheet) | 0 || 1));
+	const f = Math.max(1, Math.min(5, Number(s.faithfulness) | 0 || 4));
+	const intent = FAITHFULNESS_INTENT[f];
+	const closer = FAITHFULNESS_CLOSER[f];
+
+	/** @type {string[]} */
+	const renderingBits = [`rendered in ${ink.phrase}`];
+	if (style) renderingBits.push(style);
+	const rendering = renderingBits.join(', ');
+
+	const aspect =
+		s.aspectRatio && s.aspectRatio !== '1:1'
+			? ` Format: ${s.aspectRatio} aspect ratio.`
+			: '';
+	const extras = s.extra && s.extra.trim() ? ` Notes: ${s.extra.trim()}.` : '';
+
+	/** @type {string} */
+	let prompt;
+	if (n === 1) {
+		prompt =
+			'A flat 2D illustration of a tattoo design, drawn on paper — like a scanned page from a tattoo flash sheet. ' +
+			'This is artwork on paper, NOT a photograph, NOT a tattoo on skin, NOT a scene. ' +
+			'The image shows ONLY the design itself, isolated on a flat colored paper field. ' +
+			intent +
+			` Rendering: ${rendering}.` +
+			` Background: pure flat ${bg} paper, edge to edge, evenly colored, with no shadow, no gradient, no vignette, no texture, no body, no skin, no scene, no environment.` +
+			aspect +
+			extras;
+	} else {
+		const multiIntent =
+			f >= 4
+				? `Each of the ${n} designs is a distinct variation of the source — composition and key elements are preserved across all ${n}, with differences in rendering choices (line weight, shading approach, level of detail, ornamental flourishes).`
+				: f === 3
+					? `Each of the ${n} designs varies from the source — same subject and overall composition, with clear differences in rendering, line treatment, and ornamental details across the ${n}.`
+					: `Each of the ${n} designs is a free reinterpretation of the source — same subject and theme, but each uses an alternative layout and complementary elements.`;
+
+		prompt =
+			`A tattoo flash sheet — a single page showing ${n} distinct tattoo designs arranged in a clean grid layout with clear visual separation between each design. ` +
+			'This is flat 2D artwork on paper, NOT a photograph, NOT tattoos on skin, NOT a scene. ' +
+			intent +
+			' ' +
+			multiIntent +
+			` Rendering: ${rendering}.` +
+			` Background: pure flat ${bg} paper across the entire sheet, edge to edge, evenly colored, with no shadow, no gradient, no vignette, no texture, no body, no skin, no scene, no environment.` +
+			aspect +
+			extras;
+	}
+
+	if (ink.value === 'black') {
+		prompt += ' IMPORTANT: solid black ink only — no color, no greyscale shading.';
+	} else if (ink.value === 'grey-shading') {
+		prompt += ' IMPORTANT: black and grey ink only — no color.';
+	} else if (ink.isColor && ink.value !== 'color-auto') {
+		prompt += ` IMPORTANT: render using ${ink.phrase}. Do not use colors outside this palette, and do not render in plain black.`;
+	} else if (ink.value === 'color-auto') {
+		prompt += ' IMPORTANT: render in color ink, not plain black.';
+	}
+
+	prompt +=
+		' STRICT NEGATIVES: NO photograph, NO realistic skin, NO body part, NO person, NO human, NO model, NO 3D rendering, NO scene, NO environment, NO depth of field, NO photographic lighting, NO print bleed, NO added captions, NO labels, NO title or heading text, NO watermark, NO signature. Lettering that is part of the source design is allowed and should be reproduced. The output must look like flat 2D illustration / line art on colored paper, viewed straight-on.';
+
+	if (n > 1) {
+		prompt += ` IMPORTANT: the output must contain exactly ${n} distinct tattoo designs on a single flash-sheet page, arranged with clear visual separation between each. Do not merge them into one design. Do not output fewer than ${n} designs.`;
+	}
+
+	prompt += closer;
 
 	return prompt;
 }
