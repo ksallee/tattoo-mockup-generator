@@ -31,20 +31,24 @@ function writeCustoms(group, customs) {
 }
 
 /**
- * Append a new custom option to the group. Generates a stable internal value
- * based on the timestamp so the entry survives renames of the user-facing
- * label.
+ * Append a new custom option to the group. By default generates a synthetic
+ * value (so the entry is stable across label renames); pass `entry.value` to
+ * use a specific value instead — used by the color-preset flow where the
+ * value must be the hex itself.
  *
  * @param {string} group
- * @param {{label: string, phrase?: string}} entry
+ * @param {{label: string, phrase?: string, value?: string}} entry
  * @returns {CustomOption[]}  the updated list
  */
 export function addCustom(group, entry) {
 	const label = entry.label.trim();
 	if (!label) return readCustoms(group);
 	const phrase = (entry.phrase || '').trim() || label;
-	const value = `custom-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
-	const next = [...readCustoms(group), { value, label, phrase }];
+	const value =
+		entry.value || `custom-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+	// De-dupe by value so saving the same hex twice replaces (updates label).
+	const filtered = readCustoms(group).filter((c) => c.value !== value);
+	const next = [...filtered, { value, label, phrase }];
 	writeCustoms(group, next);
 	return next;
 }

@@ -15,7 +15,30 @@ const DEFAULT_MODEL = 'gemini-3-pro-image-preview';
 
 /**
  * @typedef {{mimeType: string, data: string}} InlineImage
+ * @typedef {{role: string, mimeType: string, data: string}} RoledImage
  */
+
+/**
+ * Per-role text prepended before each reference image so Gemini knows what
+ * each image is for. The {LETTER} placeholder is filled with B, C, D… in
+ * order so the model can refer to them explicitly.
+ *
+ * @type {Record<string, string>}
+ */
+const REF_ROLE_TEXT = {
+	pose:
+		'Image {LETTER} — pose reference. Match the pose, posture, and body angle ONLY. Do not copy the person, their face, skin, clothing, or scene.',
+	composition:
+		'Image {LETTER} — composition reference. Match the framing, layout, and visual composition ONLY. Do not copy the content.',
+	'photography-style':
+		'Image {LETTER} — photographic style reference. Match the lighting character, color grade, lens feel, and overall aesthetic ONLY. Do not copy the content.',
+	'body-skin':
+		'Image {LETTER} — body and skin reference. Match the body type, skin tone, skin texture, and age character ONLY. Do not copy the person, their face, clothing, or scene.',
+	'vibe-mood':
+		'Image {LETTER} — mood / vibe reference. Match the overall atmosphere, energy, and feeling ONLY. Do not copy the content.',
+	'body-scene':
+		'Image {LETTER} — the actual body to place the tattoo on. Apply the tattoo design from image A to this person, matching their existing pose, skin tone, lighting, and skin volume. Preserve their face, body, clothing, and surroundings exactly.'
+};
 
 /**
  * List available image-generation models for the given API key.
@@ -63,15 +86,16 @@ export async function listImageModels(apiKey) {
  * @param {string} args.apiKey
  * @param {string} args.model
  * @param {string} args.prompt
- * @param {InlineImage} args.refImage  base64 (no data: prefix)
+ * @param {InlineImage} args.refImage  primary design image (sent as image A)
+ * @param {RoledImage[]} [args.refImages]  additional role-tagged refs (B, C, D…)
  * @param {number} args.count  1..4
  * @param {string} [args.aspectRatio] e.g. "1:1", "3:4", "9:16" — only honored by Nano Banana Pro
  * @returns {Promise<InlineImage[]>}
  */
-export async function generateTattooMockups({ apiKey, model, prompt, refImage, count, aspectRatio }) {
+export async function generateTattooMockups({ apiKey, model, prompt, refImage, refImages, count, aspectRatio }) {
 	const n = Math.max(1, Math.min(4, count | 0));
 	const calls = Array.from({ length: n }, () =>
-		generateOne({ apiKey, model, prompt, refImage, aspectRatio })
+		generateOne({ apiKey, model, prompt, refImage, refImages, aspectRatio })
 	);
 	const results = await Promise.allSettled(calls);
 
@@ -91,10 +115,10 @@ export async function generateTattooMockups({ apiKey, model, prompt, refImage, c
 }
 
 /**
- * @param {{apiKey: string, model: string, prompt: string, refImage: InlineImage, aspectRatio?: string}} args
+ * @param {{apiKey: string, model: string, prompt: string, refImage: InlineImage, refImages?: RoledImage[], aspectRatio?: string}} args
  * @returns {Promise<InlineImage>}
  */
-async function generateOne({ apiKey, model, prompt, refImage, aspectRatio }) {
+async function generateOne({ apiKey, model, prompt, refImage, refImages, aspectRatio }) {
 	const url = `${BASE}/models/${encodeURIComponent(model)}:generateContent`;
 	/** @type {Record<string, any>} */
 	const generationConfig = {
@@ -103,16 +127,31 @@ async function generateOne({ apiKey, model, prompt, refImage, aspectRatio }) {
 	if (aspectRatio) {
 		generationConfig.imageConfig = { aspectRatio };
 	}
+
+	const refs = Array.isArray(refImages) ? refImages : [];
+	/** @type {Array<{text?: string, inline_data?: {mime_type: string, data: string}}>} */
+	const parts = [{ text: prompt }];
+
+	if (refs.length > 0) {
+		parts.push({
+			text: 'Multiple images follow, in order. Image A is the tattoo design to reproduce. The remaining images are role-tagged references — apply each image only for the aspect named in its label, and do not copy its content into the result.'
+		});
+	}
+
+	parts.push({ text: 'Image A — tattoo design:' });
+	parts.push({ inline_data: { mime_type: refImage.mimeType, data: refImage.data } });
+
+	let letterCode = 'B'.charCodeAt(0);
+	for (const r of refs) {
+		const letter = String.fromCharCode(letterCode);
+		const template = REF_ROLE_TEXT[r.role] || `Image ${letter} — additional reference:`;
+		parts.push({ text: template.replace(/{LETTER}/g, letter) });
+		parts.push({ inline_data: { mime_type: r.mimeType, data: r.data } });
+		letterCode++;
+	}
+
 	const body = {
-		contents: [
-			{
-				role: 'user',
-				parts: [
-					{ text: prompt },
-					{ inline_data: { mime_type: refImage.mimeType, data: refImage.data } }
-				]
-			}
-		],
+		contents: [{ role: 'user', parts }],
 		generationConfig
 	};
 
@@ -132,8 +171,8 @@ async function generateOne({ apiKey, model, prompt, refImage, aspectRatio }) {
 
 	const data = await res.json();
 	const candidate = data.candidates?.[0];
-	const parts = candidate?.content?.parts || [];
-	for (const p of parts) {
+	const respParts = candidate?.content?.parts || [];
+	for (const p of respParts) {
 		const inline = p.inlineData || p.inline_data;
 		if (inline?.data) {
 			return { mimeType: inline.mimeType || inline.mime_type || 'image/png', data: inline.data };

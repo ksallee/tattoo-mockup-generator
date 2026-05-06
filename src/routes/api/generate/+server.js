@@ -15,7 +15,7 @@ export async function POST({ request }) {
 		return json({ error: 'Invalid JSON body' }, { status: 400 });
 	}
 
-	const { model, prompt, image, count, aspectRatio } = body || {};
+	const { model, prompt, image, refImages, count, aspectRatio } = body || {};
 	const apiKey = resolveApiKey(body?.apiKey);
 	if (!apiKey) return json({ error: 'Missing apiKey' }, { status: 400 });
 	if (!model) return json({ error: 'Missing model' }, { status: 400 });
@@ -23,6 +23,13 @@ export async function POST({ request }) {
 	if (!image?.data || !image?.mimeType) {
 		return json({ error: 'Missing image' }, { status: 400 });
 	}
+
+	/** @type {{role: string, mimeType: string, data: string}[]} */
+	const cleanRefs = Array.isArray(refImages)
+		? refImages
+				.filter((r) => r && typeof r.role === 'string' && r.data && r.mimeType)
+				.slice(0, 4)
+		: [];
 
 	// Stream NDJSON: one {"type":"ping"} line every few seconds while we wait
 	// on Gemini, then a final {"type":"images",...} or {"type":"error",...}.
@@ -44,6 +51,7 @@ export async function POST({ request }) {
 				model,
 				prompt,
 				refImage: image,
+				refImages: cleanRefs,
 				count: Number(count) || 1,
 				aspectRatio: typeof aspectRatio === 'string' ? aspectRatio : undefined
 			})

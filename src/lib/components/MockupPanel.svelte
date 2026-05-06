@@ -1,6 +1,7 @@
 <script>
 	import { onMount } from 'svelte';
 	import ImageDropzone from './ImageDropzone.svelte';
+	import ReferenceImagesInput from './ReferenceImagesInput.svelte';
 	import SettingsPanel from './SettingsPanel.svelte';
 	import PromptBox from './PromptBox.svelte';
 	import ResultsGrid from './ResultsGrid.svelte';
@@ -13,6 +14,9 @@
 	/** @type {{mimeType:string,data:string} | null} */
 	let image = $state(null);
 	let previewUrl = $state('');
+
+	/** @type {{role:string,mimeType:string,data:string}[]} */
+	let refImages = $state([]);
 
 	let settings = $state({ ...DEFAULT_SETTINGS });
 	let count = $state(2);
@@ -56,6 +60,7 @@
 				model,
 				prompt: promptText,
 				image,
+				refImages,
 				count,
 				aspectRatio: settings.aspectRatio
 			});
@@ -72,6 +77,10 @@
 
 <section class="card row">
 	<ImageDropzone bind:image bind:previewUrl />
+</section>
+
+<section class="card row">
+	<ReferenceImagesInput bind:refImages />
 </section>
 
 <section class="card row">

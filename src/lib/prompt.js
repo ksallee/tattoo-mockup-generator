@@ -759,6 +759,28 @@ const FAITHFULNESS_CLOSER = {
 	5: ' STRICT FIDELITY: reproduce the source design exactly. Only the rendering style and background change.'
 };
 
+/**
+ * Resolve a chip-group selection to its prompt phrase.
+ *
+ * Built-in option lists come in two flavors:
+ *   - Some carry a `.phrase` field (INKS, SIZES, TATTOO_STYLES, …) — use that.
+ *   - Others use `.value` directly as the phrase (BODY_PARTS, LIGHTING_PRESETS, …).
+ *
+ * User-added customs always carry `.phrase`. They get merged in front of the
+ * built-in list so they take priority and so this helper handles them too.
+ *
+ * @param {string} value
+ * @param {{value: string, phrase?: string}[]} builtIns
+ * @param {string} [customsKey]  group key in $lib/customs.js
+ * @returns {string}
+ */
+export function chipPhrase(value, builtIns, customsKey) {
+	if (!value) return '';
+	const merged = customsKey ? [...readCustoms(customsKey), ...builtIns] : builtIns;
+	const opt = merged.find((o) => o.value === value);
+	return opt ? (opt.phrase ?? opt.value) : value;
+}
+
 // ── Phrase maps ─────────────────────────────────────────────────────────────
 
 /** @param {string} value */
@@ -889,8 +911,9 @@ export function buildPrompt(s) {
 	/** @type {string[]} */
 	const parts = [];
 
-	// Tattoo body + placement
-	parts.push(`tattoo on the ${s.bodyPart}`);
+	// Tattoo body + placement (chipPhrase resolves user customs to their saved phrase)
+	const bodyPart = chipPhrase(s.bodyPart, BODY_PARTS, 'bodyParts');
+	if (bodyPart) parts.push(`tattoo on the ${bodyPart}`);
 	const orient = ORIENTATION_PHRASE[s.orientation];
 	if (orient) parts.push(orient);
 	const state = STATE_PHRASE[s.state];
@@ -911,12 +934,17 @@ export function buildPrompt(s) {
 	if (s.framing) parts.push(s.framing);
 	if (s.cameraAngle && s.cameraAngle !== 'auto') parts.push(s.cameraAngle);
 	parts.push('tattoo photo shoot');
-	parts.push(s.lighting || 'studio lighting');
-	parts.push(s.background);
+	parts.push(chipPhrase(s.lighting, LIGHTING_PRESETS, 'lighting') || 'studio lighting');
+	const background = chipPhrase(s.background, BACKGROUNDS, 'backgrounds');
+	if (background) parts.push(background);
 
 	// Style + grading
-	if (s.photoStyle && s.photoStyle !== 'auto') parts.push(s.photoStyle);
-	if (s.colorGrade && s.colorGrade !== 'auto') parts.push(s.colorGrade);
+	if (s.photoStyle && s.photoStyle !== 'auto') {
+		parts.push(chipPhrase(s.photoStyle, PHOTO_STYLES, 'photoStyles'));
+	}
+	if (s.colorGrade && s.colorGrade !== 'auto') {
+		parts.push(chipPhrase(s.colorGrade, COLOR_GRADES, 'colorGrades'));
+	}
 	parts.push('great composition');
 	parts.push('cinematic');
 
@@ -1002,8 +1030,10 @@ export const DEFAULT_ITERATE_SETTINGS = {
  */
 function backgroundPhrase(hex) {
 	const norm = (hex || '').toLowerCase();
-	const known = BACKGROUND_COLORS.find((c) => c.value.toLowerCase() === norm);
-	if (known) return `${known.name} (hex ${norm})`;
+	const builtIn = BACKGROUND_COLORS.find((c) => c.value.toLowerCase() === norm);
+	if (builtIn) return `${builtIn.name} (hex ${norm})`;
+	const custom = readCustoms('colorSwatches').find((c) => c.value.toLowerCase() === norm);
+	if (custom) return `${custom.label} (hex ${norm})`;
 	return `solid color hex ${norm}`;
 }
 
@@ -1088,6 +1118,77 @@ export function buildIteratePrompt(s) {
 	}
 
 	prompt += closer;
+
+	return prompt;
+}
+
+// ── Client settings + builder ──────────────────────────────────────────────
+
+/**
+ * @typedef {Object} ClientSettings
+ * @property {string} size
+ * @property {string} ink              key from INKS
+ * @property {string} state            auto | fresh | healed
+ * @property {string} orientation      auto | reads-toward-hand | ...
+ * @property {string} bodyPart
+ * @property {string} aspectRatio      "1:1" | "3:4" | ... ("auto" = match input)
+ * @property {string} [extra]
+ */
+
+/** @type {ClientSettings} */
+export const DEFAULT_CLIENT_SETTINGS = {
+	size: 'small',
+	ink: 'black',
+	state: 'auto',
+	orientation: 'auto',
+	bodyPart: 'inner forearm',
+	aspectRatio: 'auto',
+	extra: ''
+};
+
+/**
+ * Build the client-mockup prompt. The design is sent as image A; the body
+ * photo as a body-scene reference (image B). The prompt instructs Gemini to
+ * apply the design onto the real body in image B while preserving the rest
+ * of the photograph.
+ *
+ * @param {ClientSettings} s
+ * @returns {string}
+ */
+export function buildClientPrompt(s) {
+	const size = sizePhrase(s.size);
+	const ink = inkEntry(s.ink);
+	const bodyPart = chipPhrase(s.bodyPart, BODY_PARTS, 'bodyParts');
+
+	let prompt =
+		'Apply the tattoo design from image A to the actual body shown in image B. ' +
+		`The tattoo must be ${size}, in ${ink.phrase}, placed on the ${bodyPart} of the person in image B. ` +
+		'Match the existing pose, skin tone, skin texture, lighting, color grade, depth of field, ' +
+		"and skin volume of image B exactly. Preserve the person's face, hair, body, clothing, " +
+		'jewelry, and surroundings — only the tattoo is added.';
+
+	const orient = ORIENTATION_PHRASE[s.orientation];
+	if (orient) prompt += ` The tattoo is ${orient}.`;
+	const state = STATE_PHRASE[s.state];
+	if (state) prompt += ` ${state}.`;
+
+	if (s.extra && s.extra.trim()) prompt += ` ${s.extra.trim()}.`;
+
+	// Ink emphasis bookend
+	if (ink.value === 'black') {
+		prompt += ' IMPORTANT: the tattoo must be solid black ink only — no color, no greyscale shading.';
+	} else if (ink.value === 'grey-shading') {
+		prompt += ' IMPORTANT: the tattoo must be black and grey ink only — no color.';
+	} else if (ink.isColor && ink.value !== 'color-auto') {
+		prompt += ` IMPORTANT: the tattoo must be inked using ${ink.phrase}. Do not use colors outside this palette, even if the source design is plain black.`;
+	} else if (ink.value === 'color-auto') {
+		prompt += ' IMPORTANT: the tattoo must be in color ink, not plain black, even if the source design is plain black.';
+	}
+
+	prompt += ` IMPORTANT: the tattoo must be ${size} — not larger, not smaller — and placed on the ${bodyPart} of image B.`;
+
+	prompt +=
+		' Reproduce the tattoo design from image A with pixel-perfect fidelity — same shapes, lines, and proportions, without redrawing or restyling. The tattoo should look realistically inked on the real skin in image B with proper ink absorption and slight skin texture. No added captions, no watermark, no signature. Lettering that is part of the design itself is allowed.';
 
 	return prompt;
 }

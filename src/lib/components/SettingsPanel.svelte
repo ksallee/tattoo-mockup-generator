@@ -119,7 +119,13 @@ TATTOO_STATES,
 		randomize={randomizeSubject}
 		randomizeLabel="Randomize Subject"
 	>
-		<ChipGroup label="Body part" options={BODY_PARTS} bind:value={settings.bodyPart} />
+		<ChipGroup
+			label="Body part"
+			options={BODY_PARTS}
+			bind:value={settings.bodyPart}
+			customsKey="bodyParts"
+			phraseHint="Location for the tattoo, e.g. 'side of the calf'"
+		/>
 		<ChipGroup label="Model" options={MODELS} bind:value={settings.model} />
 		<ChipGroup label="Skin tone" options={SKIN_TONES} bind:value={settings.skinTone} />
 		<ChipGroup label="Age" options={AGE_BRACKETS} bind:value={settings.ageBracket} />
@@ -144,10 +150,34 @@ TATTOO_STATES,
 		<ChipGroup label="Framing" options={FRAMINGS} bind:value={settings.framing} />
 		<ChipGroup label="Camera angle" options={CAMERA_ANGLES} bind:value={settings.cameraAngle} />
 		<ChipGroup label="Aspect ratio" options={ASPECT_RATIOS} bind:value={settings.aspectRatio} />
-		<ChipGroup label="Lighting" options={LIGHTING_PRESETS} bind:value={settings.lighting} />
-		<ChipGroup label="Background" options={BACKGROUNDS} bind:value={settings.background} />
-		<ChipGroup label="Photo style" options={PHOTO_STYLES} bind:value={settings.photoStyle} />
-		<ChipGroup label="Color grade" options={COLOR_GRADES} bind:value={settings.colorGrade} />
+		<ChipGroup
+			label="Lighting"
+			options={LIGHTING_PRESETS}
+			bind:value={settings.lighting}
+			customsKey="lighting"
+			phraseHint="Lighting description, e.g. 'soft window light from behind'"
+		/>
+		<ChipGroup
+			label="Background"
+			options={BACKGROUNDS}
+			bind:value={settings.background}
+			customsKey="backgrounds"
+			phraseHint="Background description, e.g. 'aged stone wall background'"
+		/>
+		<ChipGroup
+			label="Photo style"
+			options={PHOTO_STYLES}
+			bind:value={settings.photoStyle}
+			customsKey="photoStyles"
+			phraseHint="Photographic style, e.g. 'analog film aesthetic'"
+		/>
+		<ChipGroup
+			label="Color grade"
+			options={COLOR_GRADES}
+			bind:value={settings.colorGrade}
+			customsKey="colorGrades"
+			phraseHint="Color grade, e.g. 'matte film grade'"
+		/>
 	</Collapsible>
 
 	<Collapsible
