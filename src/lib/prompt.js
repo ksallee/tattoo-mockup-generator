@@ -1153,14 +1153,13 @@ export function buildClientPrompt(s) {
 	const ink = inkEntry(s.ink);
 
 	let prompt =
-		'Apply the tattoo design from image A to the actual body shown in image B. ' +
-		'Image C is the same body photo with a cyan placement-marker rectangle. ' +
-		'Place the tattoo so it fills exactly that rectangle — same position, same size, same rotation as the marker. ' +
+		'Generate a single photograph of the client wearing the tattoo design as a real tattoo. ' +
+		'You are given two reference images: the tattoo design itself, and a photo of the client annotated with bright pink corner brackets that mark exactly where the tattoo must appear. ' +
+		'Place the tattoo so it fills the area between the brackets — match their position, size, and rotation precisely. ' +
 		`Use ${ink.phrase}. ` +
-		'Match the existing pose, skin tone, skin texture, lighting, color grade, depth of field, ' +
-		"and skin volume of image B exactly. Preserve the person's face, hair, body, clothing, " +
-		'jewelry, and surroundings — only the tattoo is added. ' +
-		'Do NOT draw the cyan rectangle from image C in the output.';
+		'Match the pose, skin tone, skin texture, lighting, color grade, depth of field, and skin volume of the client photo exactly. ' +
+		"Preserve the person's face, hair, body, clothing, jewelry, and surroundings unchanged — only the tattoo is added. " +
+		'The output is a clean photograph — NO corner brackets, NO annotations, NO captions, NO labels, NO comparison panels.';
 
 	const state = STATE_PHRASE[s.state];
 	if (state) prompt += ` ${state}.`;
@@ -1178,10 +1177,10 @@ export function buildClientPrompt(s) {
 	}
 
 	prompt +=
-		' IMPORTANT: position, size, and rotation come from the cyan rectangle in image C — match it exactly. The output must NOT include the cyan rectangle itself.';
+		' IMPORTANT: produce a SINGLE photograph as output. Not a chart, not a grid, not a side-by-side comparison, not labeled exhibits. Do NOT draw the pink corner brackets back into the output — they are annotations, not part of the scene.';
 
 	prompt +=
-		' Reproduce the tattoo design from image A with pixel-perfect fidelity — same shapes, lines, and proportions, without redrawing or restyling. The tattoo should look realistically inked on the real skin in image B with proper ink absorption and slight skin texture. No added captions, no watermark, no signature. Lettering that is part of the design itself is allowed.';
+		' Reproduce the tattoo design with pixel-perfect fidelity — same shapes, lines, and proportions, without redrawing or restyling. The tattoo should look realistically inked on the real skin with proper ink absorption and slight skin texture. No added captions, no watermark, no signature. Lettering that is part of the design itself is allowed.';
 
 	return prompt;
 }

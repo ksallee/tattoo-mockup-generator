@@ -103,7 +103,6 @@
 				prompt: promptText,
 				image: design,
 				refImages: [
-					{ role: 'body-scene', mimeType: bodyPhoto.mimeType, data: bodyPhoto.data },
 					{ role: 'placement-marker', mimeType: marker.mimeType, data: marker.data }
 				],
 				count,

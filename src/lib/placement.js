@@ -175,19 +175,38 @@ export async function compositeMarker(photo, rect) {
 	ctx.translate(cx, cy);
 	ctx.rotate(angle);
 
-	ctx.fillStyle = 'rgba(34, 211, 238, 0.28)';
-	ctx.fillRect(-w / 2, -h / 2, w, h);
-
-	const lineWidth = Math.max(3, Math.min(canvas.width, canvas.height) * 0.005);
+	// Corner brackets (camera-focus style) instead of a full rectangle —
+	// less visually rectangle-like, so Gemini is less inclined to draw it
+	// back into the output. Hot pink reads as an annotation, not a design.
+	const lineWidth = Math.max(4, Math.min(canvas.width, canvas.height) * 0.006);
+	const arm = Math.min(w, h) * 0.18;
 	ctx.lineWidth = lineWidth;
-	ctx.strokeStyle = 'rgb(6, 182, 212)';
-	ctx.strokeRect(-w / 2, -h / 2, w, h);
+	ctx.strokeStyle = '#ec4899';
+	ctx.lineCap = 'square';
 
-	// Tick marks at the midpoints of each edge so the orientation is unambiguous.
-	const tick = lineWidth * 3;
+	ctx.beginPath();
+	// Top-left
+	ctx.moveTo(-w / 2, -h / 2 + arm);
+	ctx.lineTo(-w / 2, -h / 2);
+	ctx.lineTo(-w / 2 + arm, -h / 2);
+	// Top-right
+	ctx.moveTo(w / 2 - arm, -h / 2);
+	ctx.lineTo(w / 2, -h / 2);
+	ctx.lineTo(w / 2, -h / 2 + arm);
+	// Bottom-right
+	ctx.moveTo(w / 2, h / 2 - arm);
+	ctx.lineTo(w / 2, h / 2);
+	ctx.lineTo(w / 2 - arm, h / 2);
+	// Bottom-left
+	ctx.moveTo(-w / 2 + arm, h / 2);
+	ctx.lineTo(-w / 2, h / 2);
+	ctx.lineTo(-w / 2, h / 2 - arm);
+	ctx.stroke();
+
+	// Top-edge tick to disambiguate orientation.
 	ctx.beginPath();
 	ctx.moveTo(0, -h / 2);
-	ctx.lineTo(0, -h / 2 - tick);
+	ctx.lineTo(0, -h / 2 - arm * 0.6);
 	ctx.stroke();
 
 	ctx.restore();

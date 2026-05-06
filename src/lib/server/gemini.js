@@ -19,27 +19,27 @@ const DEFAULT_MODEL = 'gemini-3-pro-image-preview';
  */
 
 /**
- * Per-role text prepended before each reference image so Gemini knows what
- * each image is for. The {LETTER} placeholder is filled with B, C, D… in
- * order so the model can refer to them explicitly.
+ * Conversational caption prepended before each reference image. We avoid
+ * "Image A / Image B" letter labels because that wording leads Gemini to
+ * produce a labeled comparison-sheet output instead of a single image.
  *
  * @type {Record<string, string>}
  */
 const REF_ROLE_TEXT = {
 	pose:
-		'Image {LETTER} — pose reference. Match the pose, posture, and body angle ONLY. Do not copy the person, their face, skin, clothing, or scene.',
+		'A pose reference. Match the pose, posture, and body angle ONLY. Do not copy the person, their face, skin, clothing, or scene.',
 	composition:
-		'Image {LETTER} — composition reference. Match the framing, layout, and visual composition ONLY. Do not copy the content.',
+		'A composition reference. Match the framing, layout, and visual composition ONLY. Do not copy the content.',
 	'photography-style':
-		'Image {LETTER} — photographic style reference. Match the lighting character, color grade, lens feel, and overall aesthetic ONLY. Do not copy the content.',
+		'A photographic style reference. Match the lighting character, color grade, lens feel, and overall aesthetic ONLY. Do not copy the content.',
 	'body-skin':
-		'Image {LETTER} — body and skin reference. Match the body type, skin tone, skin texture, and age character ONLY. Do not copy the person, their face, clothing, or scene.',
+		'A body and skin reference. Match the body type, skin tone, skin texture, and age character ONLY. Do not copy the person, their face, clothing, or scene.',
 	'vibe-mood':
-		'Image {LETTER} — mood / vibe reference. Match the overall atmosphere, energy, and feeling ONLY. Do not copy the content.',
+		'A mood / vibe reference. Match the overall atmosphere, energy, and feeling ONLY. Do not copy the content.',
 	'body-scene':
-		'Image {LETTER} — the actual body to place the tattoo on. Apply the tattoo design from image A to this person, matching their existing pose, skin tone, lighting, and skin volume. Preserve their face, body, clothing, and surroundings exactly.',
+		'The actual body to place the tattoo on. Apply the tattoo design from the previous image onto this person, matching their existing pose, skin tone, lighting, and skin volume. Preserve their face, body, clothing, and surroundings exactly.',
 	'placement-marker':
-		'Image {LETTER} — placement marker. The cyan rectangle drawn on this image marks EXACTLY where the tattoo from image A must appear: same position, same size, same rotation as the rectangle. The rest of this image is identical to the body-scene image — use that copy for the actual skin, lighting, and surroundings. DO NOT draw the cyan rectangle in the output; only the tattoo should appear inside the marked region.'
+		'The client body photo annotated with bright pink corner brackets showing exactly where the tattoo must be placed — match the brackets for position, size, and rotation. The output must show the body with the tattoo applied as a clean photograph: NO brackets, NO annotations, NO extra panels.'
 };
 
 /**
@@ -134,22 +134,18 @@ async function generateOne({ apiKey, model, prompt, refImage, refImages, aspectR
 	/** @type {Array<{text?: string, inline_data?: {mime_type: string, data: string}}>} */
 	const parts = [{ text: prompt }];
 
-	if (refs.length > 0) {
-		parts.push({
-			text: 'Multiple images follow, in order. Image A is the tattoo design to reproduce. The remaining images are role-tagged references — apply each image only for the aspect named in its label, and do not copy its content into the result.'
-		});
-	}
-
-	parts.push({ text: 'Image A — tattoo design:' });
+	parts.push({ text: 'The tattoo design to apply:' });
 	parts.push({ inline_data: { mime_type: refImage.mimeType, data: refImage.data } });
 
-	let letterCode = 'B'.charCodeAt(0);
 	for (const r of refs) {
-		const letter = String.fromCharCode(letterCode);
-		const template = REF_ROLE_TEXT[r.role] || `Image ${letter} — additional reference:`;
-		parts.push({ text: template.replace(/{LETTER}/g, letter) });
+		parts.push({ text: REF_ROLE_TEXT[r.role] || 'Additional reference:' });
 		parts.push({ inline_data: { mime_type: r.mimeType, data: r.data } });
-		letterCode++;
+	}
+
+	if (refs.length > 0) {
+		parts.push({
+			text: 'IMPORTANT: produce a SINGLE clean photograph as output. Do not output a chart, grid, comparison sheet, side-by-side panels, labels, captions, or annotations. Do not copy any reference imagery (poses, brackets, text) into the output verbatim.'
+		});
 	}
 
 	const body = {
