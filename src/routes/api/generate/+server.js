@@ -24,17 +24,58 @@ export async function POST({ request }) {
 		return json({ error: 'Missing image' }, { status: 400 });
 	}
 
-	try {
-		const images = await generateTattooMockups({
-			apiKey,
-			model,
-			prompt,
-			refImage: image,
-			count: Number(count) || 1,
-			aspectRatio: typeof aspectRatio === 'string' ? aspectRatio : undefined
-		});
-		return json({ images });
-	} catch (/** @type {any} */ err) {
-		return json({ error: err.message || 'Generation failed' }, { status: 502 });
-	}
+	// Stream NDJSON: one {"type":"ping"} line every few seconds while we wait
+	// on Gemini, then a final {"type":"images",...} or {"type":"error",...}.
+	// The pings keep iOS Safari from treating the long fetch as dead and
+	// dropping the connection mid-generation.
+	const encoder = new TextEncoder();
+	const stream = new ReadableStream({
+		start(controller) {
+			const ping = setInterval(() => {
+				try {
+					controller.enqueue(encoder.encode('{"type":"ping"}\n'));
+				} catch {
+					clearInterval(ping);
+				}
+			}, 5000);
+
+			generateTattooMockups({
+				apiKey,
+				model,
+				prompt,
+				refImage: image,
+				count: Number(count) || 1,
+				aspectRatio: typeof aspectRatio === 'string' ? aspectRatio : undefined
+			})
+				.then((images) => {
+					controller.enqueue(
+						encoder.encode(JSON.stringify({ type: 'images', images }) + '\n')
+					);
+				})
+				.catch((/** @type {any} */ err) => {
+					controller.enqueue(
+						encoder.encode(
+							JSON.stringify({ type: 'error', error: err?.message || 'Generation failed' }) +
+								'\n'
+						)
+					);
+				})
+				.finally(() => {
+					clearInterval(ping);
+					try {
+						controller.close();
+					} catch {
+						/* already closed */
+					}
+				});
+		}
+	});
+
+	return new Response(stream, {
+		headers: {
+			'content-type': 'application/x-ndjson; charset=utf-8',
+			'cache-control': 'no-cache, no-transform',
+			'x-accel-buffering': 'no'
+		}
+	});
 }

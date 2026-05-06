@@ -35,7 +35,46 @@ export async function generateMockups({ apiKey, model, prompt, image, count, asp
 		headers: { 'content-type': 'application/json' },
 		body: JSON.stringify({ apiKey, model, prompt, image, count, aspectRatio })
 	});
-	const data = await res.json().catch(() => ({}));
-	if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
-	return data.images || [];
+
+	// Validation errors still come back as a regular JSON response with a non-2xx status.
+	if (!res.ok) {
+		const data = await res.json().catch(() => ({}));
+		throw new Error(data.error || `HTTP ${res.status}`);
+	}
+
+	const ct = res.headers.get('content-type') || '';
+	if (!ct.includes('ndjson')) {
+		// Non-streaming fallback (older deploys, or proxies that strip the stream).
+		const data = await res.json().catch(() => ({}));
+		return data.images || [];
+	}
+
+	if (!res.body) throw new Error('Streaming response missing body');
+	const reader = res.body.getReader();
+	const decoder = new TextDecoder();
+	let buf = '';
+
+	while (true) {
+		const { done, value } = await reader.read();
+		if (done) break;
+		buf += decoder.decode(value, { stream: true });
+
+		let nl;
+		while ((nl = buf.indexOf('\n')) >= 0) {
+			const line = buf.slice(0, nl).trim();
+			buf = buf.slice(nl + 1);
+			if (!line) continue;
+			let msg;
+			try {
+				msg = JSON.parse(line);
+			} catch {
+				continue;
+			}
+			if (msg.type === 'ping') continue;
+			if (msg.type === 'error') throw new Error(msg.error || 'Generation failed');
+			if (msg.type === 'images') return msg.images || [];
+		}
+	}
+
+	throw new Error('Connection ended before generation completed');
 }

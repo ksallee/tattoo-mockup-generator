@@ -1,5 +1,5 @@
 <script>
-	import { readFileAsBase64 } from '$lib/file.js';
+	import { downscaleImage } from '$lib/file.js';
 
 	let {
 		image = $bindable(/** @type {{mimeType:string,data:string} | null} */ (null)),
@@ -33,7 +33,7 @@
 		previewUrl = URL.createObjectURL(f);
 
 		try {
-			image = await readFileAsBase64(f);
+			image = await downscaleImage(f);
 		} catch (/** @type {any} */ e) {
 			error = `Could not read this image: ${e?.message || e}. Try picking it again or choose a different file.`;
 			image = null;
