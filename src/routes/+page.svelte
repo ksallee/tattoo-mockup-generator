@@ -33,6 +33,11 @@
 	let error = $state('');
 	let results = $state(/** @type {{mimeType:string,data:string}[]} */ ([]));
 
+	// Snapshot of the settings that produced the current results — so changing
+	// aspect ratio or variation count after generation doesn't re-layout the
+	// already-rendered images.
+	let resultMeta = $state({ aspectRatio: '1:1', count: 2 });
+
 	onMount(() => {
 		apiKey = readString(STORAGE_KEYS.apiKey);
 		model = readString(STORAGE_KEYS.model) || model;
@@ -54,6 +59,9 @@
 		generating = true;
 		error = '';
 		results = [];
+		// Lock the aspect/count for this render so subsequent control changes
+		// don't re-layout the displayed results.
+		resultMeta = { aspectRatio: settings.aspectRatio, count };
 		try {
 			results = await generateMockups({
 				apiKey,
@@ -63,8 +71,8 @@
 				count,
 				aspectRatio: settings.aspectRatio
 			});
-			if (results.length < count) {
-				error = `Only ${results.length} of ${count} images returned (some calls failed or were filtered).`;
+			if (results.length < resultMeta.count) {
+				error = `Only ${results.length} of ${resultMeta.count} images returned (some calls failed or were filtered).`;
 			}
 		} catch (/** @type {any} */ e) {
 			error = e.message || 'Something went wrong';
@@ -135,8 +143,8 @@
 			<ResultsGrid
 				images={results}
 				loading={generating}
-				{count}
-				aspectRatio={settings.aspectRatio}
+				count={resultMeta.count}
+				aspectRatio={resultMeta.aspectRatio}
 			/>
 		</section>
 	{/if}
