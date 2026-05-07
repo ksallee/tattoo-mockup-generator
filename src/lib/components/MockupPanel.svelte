@@ -5,8 +5,9 @@
 	import SettingsPanel from './SettingsPanel.svelte';
 	import PromptBox from './PromptBox.svelte';
 	import ResultsGrid from './ResultsGrid.svelte';
-	import { buildPrompt, DEFAULT_SETTINGS } from '$lib/prompt.js';
+	import { buildPrompt, DEFAULT_SETTINGS, ASPECT_RATIOS } from '$lib/prompt.js';
 	import { generateMockups } from '$lib/client/api.js';
+	import { snapToSupportedAspect } from '$lib/file.js';
 	import { readJSON, writeJSON, STORAGE_KEYS } from '$lib/storage.js';
 
 	let { apiKey, model } = $props();
@@ -15,15 +16,48 @@
 	let image = $state(null);
 	let previewUrl = $state('');
 
-	/** @type {{roles:string[],mimeType:string,data:string}[]} */
+	/** @type {{roles:string[],mimeType:string,data:string,width?:number,height?:number}[]} */
 	let refImages = $state([]);
 
 	let settings = $state({ ...DEFAULT_SETTINGS });
 	let count = $state(2);
 
+	// "Match ref" chips. Singular label when there's only one ref (no number
+	// needed); numbered when there are multiple to disambiguate.
+	const aspectOptions = $derived.by(() => {
+		const n = refImages.length;
+		if (n === 0) return ASPECT_RATIOS;
+		if (n === 1) return [{ value: 'ref-0', label: 'Match ref' }, ...ASPECT_RATIOS];
+		return [
+			...refImages.map((_, i) => ({ value: `ref-${i}`, label: `Match ref ${i + 1}` })),
+			...ASPECT_RATIOS
+		];
+	});
+
+	/**
+	 * Resolve a stored aspect-ratio value to the actual ratio string sent to
+	 * the API. 'ref-N' looks up the Nth ref's photo dimensions and snaps to a
+	 * supported ratio; everything else passes through verbatim.
+	 *
+	 * @param {string} value
+	 * @returns {string}
+	 */
+	function resolveAspect(value) {
+		if (typeof value === 'string' && value.startsWith('ref-')) {
+			const idx = parseInt(value.slice(4), 10);
+			const ref = refImages[idx];
+			if (ref?.width && ref?.height) return snapToSupportedAspect(ref.width, ref.height);
+			return '1:1';
+		}
+		return value;
+	}
+
+	const effectiveAspect = $derived(resolveAspect(settings.aspectRatio));
+	const effectiveSettings = $derived({ ...settings, aspectRatio: effectiveAspect });
+
 	let promptText = $state(buildPrompt(DEFAULT_SETTINGS));
 	let promptDirty = $state(false);
-	const autoPrompt = $derived(buildPrompt(settings));
+	const autoPrompt = $derived(buildPrompt(effectiveSettings));
 
 	$effect(() => {
 		if (!promptDirty) promptText = autoPrompt;
@@ -53,7 +87,7 @@
 		generating = true;
 		error = '';
 		results = [];
-		resultMeta = { aspectRatio: settings.aspectRatio, count };
+		resultMeta = { aspectRatio: effectiveAspect, count };
 		try {
 			results = await generateMockups({
 				apiKey,
@@ -62,7 +96,7 @@
 				image,
 				refImages,
 				count,
-				aspectRatio: settings.aspectRatio
+				aspectRatio: effectiveAspect
 			});
 			if (results.length < resultMeta.count) {
 				error = `Only ${results.length} of ${resultMeta.count} images returned (some calls failed or were filtered).`;
@@ -85,7 +119,7 @@
 
 <section class="card row">
 	<h2 class="row-title">Mockup settings</h2>
-	<SettingsPanel bind:settings bind:count />
+	<SettingsPanel bind:settings bind:count {aspectOptions} />
 </section>
 
 <section class="card row">
@@ -110,6 +144,10 @@
 		<div class="hint">Add your Google AI Studio API key above to start.</div>
 	{:else if !image}
 		<div class="hint">Upload a tattoo design to enable generation.</div>
+	{:else}
+		<div class="hint">
+			Will send {1 + refImages.length} file{1 + refImages.length > 1 ? 's' : ''}
+		</div>
 	{/if}
 
 	{#if error}

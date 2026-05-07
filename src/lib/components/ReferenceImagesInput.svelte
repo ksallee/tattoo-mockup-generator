@@ -2,8 +2,12 @@
 	import { downscaleImage, toDataUrl } from '$lib/file.js';
 
 	/**
-	 * @typedef {{roles: string[], mimeType: string, data: string}} RefImage
+	 * @typedef {{id: string, roles: string[], mimeType: string, data: string, width?: number, height?: number}} RefImage
 	 */
+
+	function newId() {
+		return `ref-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+	}
 
 	let {
 		refImages = $bindable(/** @type {RefImage[]} */ ([])),
@@ -32,10 +36,18 @@
 		busyIndex = idx === -1 ? refImages.length : idx;
 		try {
 			const img = await downscaleImage(file);
-			const existing =
-				idx >= 0 && refImages[idx] ? refImages[idx].roles : undefined;
-			const roles = Array.isArray(existing) && existing.length > 0 ? existing : ['pose'];
-			const next = { roles, mimeType: img.mimeType, data: img.data };
+			const existingRef = idx >= 0 ? refImages[idx] : undefined;
+			const roles =
+				existingRef?.roles && existingRef.roles.length > 0 ? existingRef.roles : ['pose'];
+			const id = existingRef?.id || newId();
+			const next = {
+				id,
+				roles,
+				mimeType: img.mimeType,
+				data: img.data,
+				width: img.width,
+				height: img.height
+			};
 			if (idx === -1) {
 				refImages = [...refImages, next];
 			} else {
@@ -78,7 +90,7 @@
 	</div>
 
 	<div class="ref-list">
-		{#each refImages as ref, i (i)}
+		{#each refImages as ref, i (ref.id ?? i)}
 			<div class="ref-slot">
 				<div class="thumb-wrap">
 					<img class="thumb" src={toDataUrl({ mimeType: ref.mimeType, data: ref.data })} alt="Reference {i + 1}" />

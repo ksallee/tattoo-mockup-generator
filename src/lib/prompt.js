@@ -261,12 +261,32 @@ export const TATTOO_STATES = [
 ];
 
 export const ORIENTATIONS = [
-	{ value: 'auto', label: 'Auto' },
-	{ value: 'reads-toward-hand', label: 'Reads toward hand/foot' },
-	{ value: 'reads-toward-shoulder', label: 'Reads toward shoulder/torso' },
-	{ value: 'horizontal', label: 'Horizontal' },
-	{ value: 'vertical', label: 'Vertical' },
-	{ value: 'diagonal', label: 'Diagonal' }
+	{ value: 'auto', label: 'Auto', phrase: '' },
+	{
+		value: 'reads-toward-hand',
+		label: 'Reads toward hand/foot',
+		phrase: 'oriented so the top of the design points toward the hand or foot'
+	},
+	{
+		value: 'reads-toward-shoulder',
+		label: 'Reads toward shoulder/torso',
+		phrase: 'oriented so the top of the design points toward the shoulder or torso'
+	},
+	{
+		value: 'horizontal',
+		label: 'Horizontal',
+		phrase: 'oriented horizontally along the body part'
+	},
+	{
+		value: 'vertical',
+		label: 'Vertical',
+		phrase: 'oriented vertically along the body part'
+	},
+	{
+		value: 'diagonal',
+		label: 'Diagonal',
+		phrase: 'oriented diagonally across the body part'
+	}
 ];
 
 export const MODELS = [
@@ -276,22 +296,22 @@ export const MODELS = [
 ];
 
 export const SKIN_TONES = [
-	{ value: 'auto', label: 'Auto' },
-	{ value: 'very fair porcelain', label: 'Very fair' },
-	{ value: 'fair pink-undertone', label: 'Fair pink' },
-	{ value: 'fair neutral', label: 'Fair neutral' },
-	{ value: 'light olive', label: 'Light olive' },
-	{ value: 'medium olive', label: 'Medium olive' },
-	{ value: 'tan golden', label: 'Tan golden' },
-	{ value: 'warm caramel', label: 'Warm caramel' },
-	{ value: 'warm brown', label: 'Warm brown' },
-	{ value: 'rich brown', label: 'Rich brown' },
-	{ value: 'deep brown', label: 'Deep brown' },
-	{ value: 'deep ebony', label: 'Deep ebony' }
+	{ value: 'auto', label: 'Auto', phrase: '' },
+	{ value: 'very fair porcelain', label: 'Very fair', phrase: 'very fair porcelain skin tone' },
+	{ value: 'fair pink-undertone', label: 'Fair pink', phrase: 'fair pink-undertone skin tone' },
+	{ value: 'fair neutral', label: 'Fair neutral', phrase: 'fair neutral skin tone' },
+	{ value: 'light olive', label: 'Light olive', phrase: 'light olive skin tone' },
+	{ value: 'medium olive', label: 'Medium olive', phrase: 'medium olive skin tone' },
+	{ value: 'tan golden', label: 'Tan golden', phrase: 'tan golden skin tone' },
+	{ value: 'warm caramel', label: 'Warm caramel', phrase: 'warm caramel skin tone' },
+	{ value: 'warm brown', label: 'Warm brown', phrase: 'warm brown skin tone' },
+	{ value: 'rich brown', label: 'Rich brown', phrase: 'rich brown skin tone' },
+	{ value: 'deep brown', label: 'Deep brown', phrase: 'deep brown skin tone' },
+	{ value: 'deep ebony', label: 'Deep ebony', phrase: 'deep ebony skin tone' }
 ];
 
 export const AGE_BRACKETS = [
-	{ value: 'auto', label: 'Auto' },
+	{ value: 'auto', label: 'Auto', phrase: '' },
 	{ value: 'late teens', label: 'Late teens' },
 	{ value: 'in their early 20s', label: 'Early 20s' },
 	{ value: 'in their late 20s', label: 'Late 20s' },
@@ -307,30 +327,82 @@ export const AGE_BRACKETS = [
  * can't both be true). Default 'none' replaces the old cleanSkin toggle.
  */
 export const EXISTING_TATTOOS = [
-	{ value: 'none', label: 'Clean skin' },
-	{ value: 'matching-style', label: 'Matching style' },
-	{ value: 'matching-color', label: 'Matching color' },
-	{ value: 'few-black', label: 'A few black tattoos' },
-	{ value: 'many-black', label: 'Heavily black-tattooed' },
-	{ value: 'few-color', label: 'A few color tattoos' },
-	{ value: 'many-color', label: 'Heavily color-tattooed' },
-	{ value: 'mixed', label: 'Mixed black + color' },
-	{ value: 'sleeve-black', label: 'Black sleeve' },
-	{ value: 'sleeve-color', label: 'Color sleeve' },
-	{ value: 'fine-line-set', label: 'Fine-line set' },
-	{ value: 'minimalist-set', label: 'Minimalist set' },
-	{ value: 'traditional-set', label: 'Traditional set' }
+	{ value: 'none', label: 'Clean skin', phrase: '' },
+	{
+		value: 'matching-style',
+		label: 'Matching style',
+		phrase:
+			'with several other existing tattoos in a matching style and aesthetic visible nearby on the body'
+	},
+	{
+		value: 'matching-color',
+		label: 'Matching color',
+		phrase: 'with several other existing tattoos in matching colors visible nearby on the body'
+	},
+	{
+		value: 'few-black',
+		label: 'A few black tattoos',
+		phrase: 'with a few existing small black ink tattoos visible nearby on the body'
+	},
+	{
+		value: 'many-black',
+		label: 'Heavily black-tattooed',
+		phrase:
+			'heavily tattooed in black ink with many existing black tattoos visible across the body'
+	},
+	{
+		value: 'few-color',
+		label: 'A few color tattoos',
+		phrase: 'with a few existing small color tattoos visible nearby on the body'
+	},
+	{
+		value: 'many-color',
+		label: 'Heavily color-tattooed',
+		phrase: 'heavily tattooed with many existing colorful tattoos visible across the body'
+	},
+	{
+		value: 'mixed',
+		label: 'Mixed black + color',
+		phrase:
+			'with several existing tattoos visible on the body — a mix of black and color work'
+	},
+	{
+		value: 'sleeve-black',
+		label: 'Black sleeve',
+		phrase: 'with an existing full black ink sleeve tattoo on the same arm'
+	},
+	{
+		value: 'sleeve-color',
+		label: 'Color sleeve',
+		phrase: 'with an existing full color sleeve tattoo on the same arm'
+	},
+	{
+		value: 'fine-line-set',
+		label: 'Fine-line set',
+		phrase: 'with several existing fine-line tattoos visible nearby on the body'
+	},
+	{
+		value: 'minimalist-set',
+		label: 'Minimalist set',
+		phrase: 'with several existing minimalist line-art tattoos visible nearby on the body'
+	},
+	{
+		value: 'traditional-set',
+		label: 'Traditional set',
+		phrase:
+			'with several existing American traditional style tattoos visible nearby on the body'
+	}
 ];
 
 export const BODY_TYPES = [
-	{ value: 'auto', label: 'Auto' },
-	{ value: 'slim', label: 'Slim' },
-	{ value: 'lean athletic', label: 'Lean athletic' },
-	{ value: 'athletic muscular', label: 'Athletic muscular' },
-	{ value: 'curvy', label: 'Curvy' },
-	{ value: 'plus-size', label: 'Plus-size' },
-	{ value: 'petite', label: 'Petite' },
-	{ value: 'tall slender', label: 'Tall slender' }
+	{ value: 'auto', label: 'Auto', phrase: '' },
+	{ value: 'slim', label: 'Slim', phrase: 'slim build' },
+	{ value: 'lean athletic', label: 'Lean athletic', phrase: 'lean athletic build' },
+	{ value: 'athletic muscular', label: 'Athletic muscular', phrase: 'athletic muscular build' },
+	{ value: 'curvy', label: 'Curvy', phrase: 'curvy build' },
+	{ value: 'plus-size', label: 'Plus-size', phrase: 'plus-size build' },
+	{ value: 'petite', label: 'Petite', phrase: 'petite build' },
+	{ value: 'tall slender', label: 'Tall slender', phrase: 'tall slender build' }
 ];
 
 export const BODY_PARTS = [
@@ -826,40 +898,6 @@ const STATE_PHRASE = {
 };
 
 /** @type {Record<string, string>} */
-const EXISTING_TATTOOS_PHRASE = {
-	'none': '',
-	'matching-style':
-		'with several other existing tattoos in a matching style and aesthetic visible nearby on the body',
-	'matching-color':
-		'with several other existing tattoos in matching colors visible nearby on the body',
-	'few-black': 'with a few existing small black ink tattoos visible nearby on the body',
-	'many-black':
-		'heavily tattooed in black ink with many existing black tattoos visible across the body',
-	'few-color': 'with a few existing small color tattoos visible nearby on the body',
-	'many-color':
-		'heavily tattooed with many existing colorful tattoos visible across the body',
-	'mixed':
-		'with several existing tattoos visible on the body — a mix of black and color work',
-	'sleeve-black': 'with an existing full black ink sleeve tattoo on the same arm',
-	'sleeve-color': 'with an existing full color sleeve tattoo on the same arm',
-	'fine-line-set': 'with several existing fine-line tattoos visible nearby on the body',
-	'minimalist-set':
-		'with several existing minimalist line-art tattoos visible nearby on the body',
-	'traditional-set':
-		'with several existing American traditional style tattoos visible nearby on the body'
-};
-
-/** @type {Record<string, string>} */
-const ORIENTATION_PHRASE = {
-	'auto': '',
-	'reads-toward-hand': 'oriented so the top of the design points toward the hand or foot',
-	'reads-toward-shoulder': 'oriented so the top of the design points toward the shoulder or torso',
-	'horizontal': 'oriented horizontally along the body part',
-	'vertical': 'oriented vertically along the body part',
-	'diagonal': 'oriented diagonally across the body part'
-};
-
-/** @type {Record<string, string>} */
 const MODEL_PHRASE = {
 	woman: 'on a woman',
 	man: 'on a man',
@@ -926,7 +964,7 @@ export const DEFAULT_SETTINGS = {
  * @returns {string}
  */
 export function buildPrompt(s) {
-	const size = sizePhrase(s.size);
+	const size = chipPhrase(s.size, SIZES, 'sizes') || 'small tattoo, about 3 cm wide';
 	const ink = inkEntry(s.ink);
 
 	const opener = s.stickToIllustration
@@ -936,23 +974,26 @@ export function buildPrompt(s) {
 	/** @type {string[]} */
 	const parts = [];
 
-	// Tattoo body + placement (chipPhrase resolves user customs to their saved phrase)
+	// Every chip-group field below routes through chipPhrase so user-added
+	// customs land in the prompt the same way as built-ins, and 'auto'
+	// entries (phrase: '') are silently skipped.
 	const bodyPart = chipPhrase(s.bodyPart, BODY_PARTS, 'bodyParts');
 	if (bodyPart) parts.push(`tattoo on the ${bodyPart}`);
-	const orient = ORIENTATION_PHRASE[s.orientation];
+	const orient = chipPhrase(s.orientation, ORIENTATIONS, 'orientations');
 	if (orient) parts.push(orient);
 	const state = STATE_PHRASE[s.state];
 	if (state) parts.push(state);
 
-	// Subject
 	const modelPhrase = MODEL_PHRASE[s.model];
 	if (modelPhrase) parts.push(modelPhrase);
-	if (s.skinTone && s.skinTone !== 'auto') parts.push(`${s.skinTone} skin tone`);
-	if (s.ageBracket && s.ageBracket !== 'auto') parts.push(s.ageBracket);
-	if (s.bodyType && s.bodyType !== 'auto') parts.push(`${s.bodyType} build`);
+	const skinTone = chipPhrase(s.skinTone, SKIN_TONES, 'skinTones');
+	if (skinTone) parts.push(skinTone);
+	const ageBracket = chipPhrase(s.ageBracket, AGE_BRACKETS, 'ageBrackets');
+	if (ageBracket) parts.push(ageBracket);
+	const bodyType = chipPhrase(s.bodyType, BODY_TYPES, 'bodyTypes');
+	if (bodyType) parts.push(bodyType);
 
-	// Existing tattoos on the model's skin (or explicit "clean")
-	const existing = EXISTING_TATTOOS_PHRASE[s.existingTattoos];
+	const existing = chipPhrase(s.existingTattoos, EXISTING_TATTOOS, 'existingTattoos');
 	if (existing) parts.push(existing);
 
 	// Framing + angle + lighting + background. Each routes through chipPhrase
@@ -1005,16 +1046,17 @@ export function buildPrompt(s) {
 		prompt += '. No added captions, no watermark, no signature. Lettering that is part of the tattoo design itself is allowed.';
 	}
 
-	// Color emphasis: bookend the ink instruction so the model actually
-	// follows the palette rather than defaulting to black or random colors.
+	// Color emphasis. For specific palettes we point the model at the colors
+	// as inspiration with a dominant-tone hint, rather than hard-locking it —
+	// strict palette directives often produced flat-looking work.
 	if (ink.value === 'black') {
 		prompt += ' IMPORTANT: the tattoo must be solid black ink only — no color, no greyscale shading.';
 	} else if (ink.value === 'grey-shading') {
 		prompt += ' IMPORTANT: the tattoo must be black and grey ink only — no color.';
 	} else if (ink.isColor && ink.value !== 'color-auto') {
-		prompt += ` IMPORTANT: the tattoo must be inked using ${ink.phrase}. Do not use colors outside this palette, and do not render the design in plain black.`;
+		prompt += ` Use ${ink.phrase} as the color inspiration — let one of those colors be the dominant tone. Do not render the design in plain black.`;
 	} else if (ink.value === 'color-auto') {
-		prompt += ' IMPORTANT: the tattoo must be in color ink, not plain black.';
+		prompt += ' Render the design in color ink, not plain black.';
 	}
 
 	// Size emphasis — repeat at the end. Subjective sizing is the most-ignored
@@ -1138,9 +1180,9 @@ export function buildIteratePrompt(s) {
 	} else if (ink.value === 'grey-shading') {
 		prompt += ' IMPORTANT: black and grey ink only — no color.';
 	} else if (ink.isColor && ink.value !== 'color-auto') {
-		prompt += ` IMPORTANT: render using ${ink.phrase}. Do not use colors outside this palette, and do not render in plain black.`;
+		prompt += ` Use ${ink.phrase} as the color inspiration — let one of those colors be the dominant tone. Do not render in plain black.`;
 	} else if (ink.value === 'color-auto') {
-		prompt += ' IMPORTANT: render in color ink, not plain black.';
+		prompt += ' Render in color ink, not plain black.';
 	}
 
 	prompt +=

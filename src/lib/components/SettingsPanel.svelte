@@ -29,7 +29,13 @@ TATTOO_STATES,
 	import Chip from './Chip.svelte';
 	import InkPicker from './InkPicker.svelte';
 
-	let { settings = $bindable(), count = $bindable(2) } = $props();
+	let {
+		settings = $bindable(),
+		count = $bindable(2),
+		/** Override the aspect-ratio chip options. Mockup mode injects "Match ref N"
+		 * entries here when 2+ reference images are uploaded. */
+		aspectOptions = ASPECT_RATIOS
+	} = $props();
 
 	/**
 	 * @param {{value:string,label:string}[]} list
@@ -193,7 +199,7 @@ TATTOO_STATES,
 			customsKey="cameraAngles"
 			phraseHint="Camera angle, e.g. 'low angle 30° tilted upward'"
 		/>
-		<ChipGroup label="Aspect ratio" options={ASPECT_RATIOS} bind:value={settings.aspectRatio} />
+		<ChipGroup label="Aspect ratio" options={aspectOptions} bind:value={settings.aspectRatio} />
 		<ChipGroup
 			label="Lighting"
 			options={LIGHTING_PRESETS}
