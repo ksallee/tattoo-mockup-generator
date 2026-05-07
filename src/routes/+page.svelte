@@ -1,5 +1,6 @@
 <script>
 	import { onMount } from 'svelte';
+	import { fade } from 'svelte/transition';
 	import ApiKeyField from '$lib/components/ApiKeyField.svelte';
 	import ModelSelect from '$lib/components/ModelSelect.svelte';
 	import SegmentedControl from '$lib/components/SegmentedControl.svelte';
@@ -8,9 +9,17 @@
 	import { readString, writeString, STORAGE_KEYS } from '$lib/storage.js';
 
 	const MODE_OPTIONS = [
-		{ value: 'iterate', label: 'Iterate', icon: 'lucide:repeat' },
-		{ value: 'mockup', label: 'AI mockup', icon: 'lucide:wand-2' }
+		{ value: 'iterate', label: 'Flash sheet', icon: 'lucide:repeat' },
+		{ value: 'mockup', label: 'On the body', icon: 'lucide:wand-2' }
 	];
+
+	/** @type {Record<string, string>} */
+	const MODE_TAGLINES = {
+		iterate:
+			'Upload a design and get a flash-sheet of variations on the colored background you choose. Stylistic riffs or full recompositions.',
+		mockup:
+			'Upload a design, pick a body part and a vibe, and watch AI place it on real skin in seconds.'
+	};
 
 	let apiKey = $state('');
 	let model = $state('gemini-3-pro-image-preview');
@@ -34,10 +43,6 @@
 <main class="page">
 	<header class="hero">
 		<h1>Tattoo Mockup Generator</h1>
-		<p class="tagline">
-			Upload a design, pick a body part and a vibe, see it on real skin in seconds — powered by
-			Google Nano Banana Pro.
-		</p>
 	</header>
 
 	<div class="mode-rail">
@@ -47,6 +52,12 @@
 			size="lg"
 			ariaLabel="Generation mode"
 		/>
+	</div>
+
+	<div class="tagline-wrap">
+		{#key mode}
+			<p class="tagline" in:fade={{ duration: 220 }}>{MODE_TAGLINES[mode] ?? ''}</p>
+		{/key}
 	</div>
 
 	<section class="card row">
@@ -87,6 +98,10 @@
 		font-family: var(--font-display);
 		font-size: var(--font-size-2xl);
 		margin-bottom: var(--space-2);
+	}
+	.tagline-wrap {
+		text-align: center;
+		min-height: 3rem;
 	}
 	.tagline {
 		color: var(--color-text-secondary);
