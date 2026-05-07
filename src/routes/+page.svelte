@@ -5,13 +5,11 @@
 	import SegmentedControl from '$lib/components/SegmentedControl.svelte';
 	import IteratePanel from '$lib/components/IteratePanel.svelte';
 	import MockupPanel from '$lib/components/MockupPanel.svelte';
-	import ClientPanel from '$lib/components/ClientPanel.svelte';
 	import { readString, writeString, STORAGE_KEYS } from '$lib/storage.js';
 
 	const MODE_OPTIONS = [
 		{ value: 'iterate', label: 'Iterate', icon: 'lucide:repeat' },
-		{ value: 'mockup', label: 'AI mockup', icon: 'lucide:wand-2' },
-		{ value: 'client', label: 'Client mockup', icon: 'lucide:user' }
+		{ value: 'mockup', label: 'AI mockup', icon: 'lucide:wand-2' }
 	];
 
 	let apiKey = $state('');
@@ -61,8 +59,6 @@
 
 	{#if mode === 'iterate'}
 		<IteratePanel {apiKey} {model} />
-	{:else if mode === 'client'}
-		<ClientPanel {apiKey} {model} />
 	{:else}
 		<MockupPanel {apiKey} {model} />
 	{/if}

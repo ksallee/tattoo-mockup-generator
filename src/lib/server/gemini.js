@@ -35,11 +35,7 @@ const REF_ROLE_TEXT = {
 	'body-skin':
 		'A body and skin reference. Match the body type, skin tone, skin texture, and age character ONLY. Do not copy the person, their face, clothing, or scene.',
 	'vibe-mood':
-		'A mood / vibe reference. Match the overall atmosphere, energy, and feeling ONLY. Do not copy the content.',
-	'body-scene':
-		'The actual body to place the tattoo on. Apply the tattoo design from the previous image onto this person, matching their existing pose, skin tone, lighting, and skin volume. Preserve their face, body, clothing, and surroundings exactly.',
-	'placement-marker':
-		'The client body photo annotated with bright pink corner brackets showing exactly where the tattoo must be placed — match the brackets for position, size, and rotation. The output must show the body with the tattoo applied as a clean photograph: NO brackets, NO annotations, NO extra panels.'
+		'A mood / vibe reference. Match the overall atmosphere, energy, and feeling ONLY. Do not copy the content.'
 };
 
 /**

@@ -49,6 +49,5 @@ export const STORAGE_KEYS = {
 	model: 'tmg.model',
 	mode: 'tmg.mode',
 	settings: 'tmg.settings',
-	iterateSettings: 'tmg.iterate.settings',
-	clientSettings: 'tmg.client.settings'
+	iterateSettings: 'tmg.iterate.settings'
 };
