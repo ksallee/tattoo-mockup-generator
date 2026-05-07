@@ -15,7 +15,7 @@
 	let image = $state(null);
 	let previewUrl = $state('');
 
-	/** @type {{role:string,mimeType:string,data:string}[]} */
+	/** @type {{roles:string[],mimeType:string,data:string}[]} */
 	let refImages = $state([]);
 
 	let settings = $state({ ...DEFAULT_SETTINGS });

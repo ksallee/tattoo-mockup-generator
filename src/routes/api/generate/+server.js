@@ -24,10 +24,15 @@ export async function POST({ request }) {
 		return json({ error: 'Missing image' }, { status: 400 });
 	}
 
-	/** @type {{role: string, mimeType: string, data: string}[]} */
+	/** @type {{role?: string, roles?: string[], mimeType: string, data: string}[]} */
 	const cleanRefs = Array.isArray(refImages)
 		? refImages
-				.filter((r) => r && typeof r.role === 'string' && r.data && r.mimeType)
+				.filter((r) => {
+					if (!r || !r.data || !r.mimeType) return false;
+					const hasRoles = Array.isArray(r.roles) && r.roles.length > 0;
+					const hasRole = typeof r.role === 'string' && !!r.role;
+					return hasRoles || hasRole;
+				})
 				.slice(0, 4)
 		: [];
 

@@ -2,7 +2,7 @@
 	import { downscaleImage, toDataUrl } from '$lib/file.js';
 
 	/**
-	 * @typedef {{role: string, mimeType: string, data: string}} RefImage
+	 * @typedef {{roles: string[], mimeType: string, data: string}} RefImage
 	 */
 
 	let {
@@ -32,8 +32,10 @@
 		busyIndex = idx === -1 ? refImages.length : idx;
 		try {
 			const img = await downscaleImage(file);
-			const role = idx >= 0 && refImages[idx] ? refImages[idx].role : 'pose';
-			const next = { role, mimeType: img.mimeType, data: img.data };
+			const existing =
+				idx >= 0 && refImages[idx] ? refImages[idx].roles : undefined;
+			const roles = Array.isArray(existing) && existing.length > 0 ? existing : ['pose'];
+			const next = { roles, mimeType: img.mimeType, data: img.data };
 			if (idx === -1) {
 				refImages = [...refImages, next];
 			} else {
@@ -54,9 +56,15 @@
 	}
 
 	/** @param {number} idx @param {string} role */
-	function setRole(idx, role) {
+	function toggleRole(idx, role) {
 		const copy = refImages.slice();
-		copy[idx] = { ...copy[idx], role };
+		const current = Array.isArray(copy[idx].roles) ? copy[idx].roles : [];
+		copy[idx] = {
+			...copy[idx],
+			roles: current.includes(role)
+				? current.filter((/** @type {string} */ r) => r !== role)
+				: [...current, role]
+		};
 		refImages = copy;
 	}
 </script>
@@ -64,7 +72,9 @@
 <div class="ref-input">
 	<div class="header">
 		<div class="title">Reference images <span class="hint-inline">(optional, up to {maxRefs})</span></div>
-		<div class="hint">Add up to {maxRefs} extra images. Tag each one so the model knows what to copy from it.</div>
+		<div class="hint">
+			Add up to {maxRefs} extra images. For each one, pick any number of roles — the model will use it for those aspects only.
+		</div>
 	</div>
 
 	<div class="ref-list">
@@ -90,8 +100,8 @@
 						<button
 							type="button"
 							class="role-chip"
-							class:active={ref.role === role.value}
-							onclick={() => setRole(i, role.value)}
+							class:active={Array.isArray(ref.roles) && ref.roles.includes(role.value)}
+							onclick={() => toggleRole(i, role.value)}
 							title={role.label}
 						>
 							<iconify-icon icon={role.icon} aria-hidden="true"></iconify-icon>

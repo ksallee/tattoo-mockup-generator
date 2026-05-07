@@ -15,28 +15,41 @@ const DEFAULT_MODEL = 'gemini-3-pro-image-preview';
 
 /**
  * @typedef {{mimeType: string, data: string}} InlineImage
- * @typedef {{role: string, mimeType: string, data: string}} RoledImage
+ * @typedef {{role?: string, roles?: string[], mimeType: string, data: string}} RoledImage
  */
 
 /**
- * Conversational caption prepended before each reference image. We avoid
- * "Image A / Image B" letter labels because that wording leads Gemini to
- * produce a labeled comparison-sheet output instead of a single image.
+ * Aspect phrase for each reference role. Multiple roles are combined into a
+ * single caption per image (see captionForRoles below) so we can say "match
+ * the pose and the lighting only" instead of stacking two separate
+ * instructions.
  *
  * @type {Record<string, string>}
  */
-const REF_ROLE_TEXT = {
-	pose:
-		'A pose reference. Match the pose, posture, and body angle ONLY. Do not copy the person, their face, skin, clothing, or scene.',
-	composition:
-		'A composition reference. Match the framing, layout, and visual composition ONLY. Do not copy the content.',
+const REF_ROLE_ASPECTS = {
+	pose: 'pose, posture, and body angle',
+	composition: 'framing, layout, and visual composition',
 	'photography-style':
-		'A photographic style reference. Match the lighting character, color grade, lens feel, and overall aesthetic ONLY. Do not copy the content.',
-	'body-skin':
-		'A body and skin reference. Match the body type, skin tone, skin texture, and age character ONLY. Do not copy the person, their face, clothing, or scene.',
-	'vibe-mood':
-		'A mood / vibe reference. Match the overall atmosphere, energy, and feeling ONLY. Do not copy the content.'
+		'lighting character, color grade, lens feel, and photographic aesthetic',
+	'body-skin': 'body type, skin tone, skin texture, and age character',
+	'vibe-mood': 'overall atmosphere, energy, and mood'
 };
+
+/**
+ * @param {string[]} roles
+ * @returns {string}
+ */
+function captionForRoles(roles) {
+	const aspects = roles
+		.map((r) => REF_ROLE_ASPECTS[r])
+		.filter(/** @returns {x is string} */ (x) => typeof x === 'string');
+	if (aspects.length === 0) return 'A reference image.';
+	let listed;
+	if (aspects.length === 1) listed = aspects[0];
+	else if (aspects.length === 2) listed = `${aspects[0]} and ${aspects[1]}`;
+	else listed = `${aspects.slice(0, -1).join('; ')}; and ${aspects[aspects.length - 1]}`;
+	return `A reference image — match the ${listed} ONLY. Do not copy the person, their identity, or the rest of the scene's content.`;
+}
 
 /**
  * List available image-generation models for the given API key.
@@ -134,7 +147,12 @@ async function generateOne({ apiKey, model, prompt, refImage, refImages, aspectR
 	parts.push({ inline_data: { mime_type: refImage.mimeType, data: refImage.data } });
 
 	for (const r of refs) {
-		parts.push({ text: REF_ROLE_TEXT[r.role] || 'Additional reference:' });
+		const roles = Array.isArray(r.roles)
+			? r.roles
+			: typeof r.role === 'string' && r.role
+				? [r.role]
+				: [];
+		parts.push({ text: captionForRoles(roles) });
 		parts.push({ inline_data: { mime_type: r.mimeType, data: r.data } });
 	}
 

@@ -377,6 +377,7 @@ export const BODY_PARTS = [
 ];
 
 export const FRAMINGS = [
+	{ value: 'auto', label: 'Auto', phrase: '' },
 	{
 		value: 'extreme macro close-up, very shallow depth of field, the tattoo fills the frame',
 		label: 'Extreme macro'
@@ -413,6 +414,7 @@ export const ASPECT_RATIOS = [
 ];
 
 export const LIGHTING_PRESETS = [
+	{ value: 'auto', label: 'Auto', phrase: '' },
 	{ value: 'large softbox at 45 degrees, even soft light', label: 'Studio softbox' },
 	{ value: 'beauty dish lighting, soft and flattering', label: 'Beauty dish' },
 	{ value: 'two-light Rembrandt lighting', label: 'Rembrandt' },
@@ -436,6 +438,7 @@ export const LIGHTING_PRESETS = [
 ];
 
 export const BACKGROUNDS = [
+	{ value: 'auto', label: 'Auto', phrase: '' },
 	{ value: 'light grey seamless background', label: 'Light grey studio' },
 	{ value: 'soft white seamless background', label: 'Soft white studio' },
 	{ value: 'warm beige seamless background', label: 'Warm beige studio' },
@@ -781,6 +784,28 @@ export function chipPhrase(value, builtIns, customsKey) {
 	return opt ? (opt.phrase ?? opt.value) : value;
 }
 
+/**
+ * Resolve a single value from the multi-select "details" pool — which is a
+ * flat array of values that can come from any of POSES, ACCESSORIES,
+ * SKIN_DETAILS, or ATMOSPHERE (each of which may have user-added customs).
+ *
+ * @param {string} value
+ * @returns {string}
+ */
+function resolveDetailPhrase(value) {
+	for (const list of [POSES, ACCESSORIES, SKIN_DETAILS, ATMOSPHERE]) {
+		const opt = /** @type {{value: string, phrase?: string}} */ (
+			list.find((o) => o.value === value)
+		);
+		if (opt) return opt.phrase ?? opt.value;
+	}
+	for (const group of ['poses', 'accessories', 'skinDetails', 'atmosphere']) {
+		const c = readCustoms(group).find((c) => c.value === value);
+		if (c) return c.phrase;
+	}
+	return value;
+}
+
 // ── Phrase maps ─────────────────────────────────────────────────────────────
 
 /** @param {string} value */
@@ -930,11 +955,16 @@ export function buildPrompt(s) {
 	const existing = EXISTING_TATTOOS_PHRASE[s.existingTattoos];
 	if (existing) parts.push(existing);
 
-	// Framing + angle + lighting + background
-	if (s.framing) parts.push(s.framing);
-	if (s.cameraAngle && s.cameraAngle !== 'auto') parts.push(s.cameraAngle);
+	// Framing + angle + lighting + background. Each routes through chipPhrase
+	// so an 'auto' value (phrase: '') is silently skipped from the prompt.
+	const framing = chipPhrase(s.framing, FRAMINGS, 'framings');
+	if (framing) parts.push(framing);
+	if (s.cameraAngle && s.cameraAngle !== 'auto') {
+		parts.push(chipPhrase(s.cameraAngle, CAMERA_ANGLES, 'cameraAngles'));
+	}
 	parts.push('tattoo photo shoot');
-	parts.push(chipPhrase(s.lighting, LIGHTING_PRESETS, 'lighting') || 'studio lighting');
+	const lighting = chipPhrase(s.lighting, LIGHTING_PRESETS, 'lighting');
+	if (lighting) parts.push(lighting);
 	const background = chipPhrase(s.background, BACKGROUNDS, 'backgrounds');
 	if (background) parts.push(background);
 
@@ -953,9 +983,12 @@ export function buildPrompt(s) {
 		parts.push(`${s.aspectRatio} aspect ratio framing`);
 	}
 
-	// Multi-select details
+	// Multi-select details (custom values are resolved to their saved phrases)
 	if (Array.isArray(s.details)) {
-		for (const d of s.details) if (d) parts.push(d);
+		for (const d of s.details) {
+			const phrase = resolveDetailPhrase(d);
+			if (phrase) parts.push(phrase);
+		}
 	}
 
 	// Extras

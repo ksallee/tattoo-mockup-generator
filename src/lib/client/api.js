@@ -27,7 +27,7 @@ export async function fetchModels(apiKey) {
  * @param {{mimeType:string,data:string}} args.image
  * @param {number} args.count
  * @param {string} [args.aspectRatio]
- * @param {{role:string,mimeType:string,data:string}[]} [args.refImages]
+ * @param {{roles:string[],mimeType:string,data:string}[]} [args.refImages]
  * @returns {Promise<{mimeType:string,data:string}[]>}
  */
 export async function generateMockups({ apiKey, model, prompt, image, count, aspectRatio, refImages }) {

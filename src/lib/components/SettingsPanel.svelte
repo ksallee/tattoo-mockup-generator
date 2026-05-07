@@ -63,11 +63,11 @@ TATTOO_STATES,
 	}
 
 	function randomizePhoto() {
-		settings.framing = pickOne(FRAMINGS);
+		settings.framing = pickOne(FRAMINGS, ['auto']);
 		settings.cameraAngle = pickOne(CAMERA_ANGLES, ['auto']);
 		settings.aspectRatio = pickOne(ASPECT_RATIOS);
-		settings.lighting = pickOne(LIGHTING_PRESETS);
-		settings.background = pickOne(BACKGROUNDS);
+		settings.lighting = pickOne(LIGHTING_PRESETS, ['auto']);
+		settings.background = pickOne(BACKGROUNDS, ['auto']);
 		settings.photoStyle = pickOne(PHOTO_STYLES, ['auto']);
 		settings.colorGrade = pickOne(COLOR_GRADES, ['auto']);
 	}
@@ -104,9 +104,21 @@ TATTOO_STATES,
 		randomizeLabel="Randomize Tattoo"
 	>
 		<InkPicker bind:value={settings.ink} />
-		<ChipGroup label="Size" options={SIZES} bind:value={settings.size} />
+		<ChipGroup
+			label="Size"
+			options={SIZES}
+			bind:value={settings.size}
+			customsKey="sizes"
+			phraseHint="Size phrase, e.g. 'palm-sized, about 10 cm wide'"
+		/>
 		<ChipGroup label="State" options={TATTOO_STATES} bind:value={settings.state} />
-		<ChipGroup label="Orientation" options={ORIENTATIONS} bind:value={settings.orientation} />
+		<ChipGroup
+			label="Orientation"
+			options={ORIENTATIONS}
+			bind:value={settings.orientation}
+			customsKey="orientations"
+			phraseHint="Orientation, e.g. 'wraps around the wrist 270°'"
+		/>
 	</Collapsible>
 
 	<Collapsible
@@ -127,13 +139,33 @@ TATTOO_STATES,
 			phraseHint="Location for the tattoo, e.g. 'side of the calf'"
 		/>
 		<ChipGroup label="Model" options={MODELS} bind:value={settings.model} />
-		<ChipGroup label="Skin tone" options={SKIN_TONES} bind:value={settings.skinTone} />
-		<ChipGroup label="Age" options={AGE_BRACKETS} bind:value={settings.ageBracket} />
-		<ChipGroup label="Body type" options={BODY_TYPES} bind:value={settings.bodyType} />
+		<ChipGroup
+			label="Skin tone"
+			options={SKIN_TONES}
+			bind:value={settings.skinTone}
+			customsKey="skinTones"
+			phraseHint="Skin tone, e.g. 'light olive with red undertones'"
+		/>
+		<ChipGroup
+			label="Age"
+			options={AGE_BRACKETS}
+			bind:value={settings.ageBracket}
+			customsKey="ageBrackets"
+			phraseHint="Age phrase, e.g. 'in their early 60s'"
+		/>
+		<ChipGroup
+			label="Body type"
+			options={BODY_TYPES}
+			bind:value={settings.bodyType}
+			customsKey="bodyTypes"
+			phraseHint="Body type, e.g. 'lean dancer build'"
+		/>
 		<ChipGroup
 			label="Existing tattoos"
 			options={EXISTING_TATTOOS}
 			bind:value={settings.existingTattoos}
+			customsKey="existingTattoos"
+			phraseHint="Existing-tattoos phrase, e.g. 'half sleeve in dotwork only'"
 		/>
 	</Collapsible>
 
@@ -147,8 +179,20 @@ TATTOO_STATES,
 		randomize={randomizePhoto}
 		randomizeLabel="Randomize Photo"
 	>
-		<ChipGroup label="Framing" options={FRAMINGS} bind:value={settings.framing} />
-		<ChipGroup label="Camera angle" options={CAMERA_ANGLES} bind:value={settings.cameraAngle} />
+		<ChipGroup
+			label="Framing"
+			options={FRAMINGS}
+			bind:value={settings.framing}
+			customsKey="framings"
+			phraseHint="Framing description, e.g. 'mid-distance editorial portrait'"
+		/>
+		<ChipGroup
+			label="Camera angle"
+			options={CAMERA_ANGLES}
+			bind:value={settings.cameraAngle}
+			customsKey="cameraAngles"
+			phraseHint="Camera angle, e.g. 'low angle 30° tilted upward'"
+		/>
 		<ChipGroup label="Aspect ratio" options={ASPECT_RATIOS} bind:value={settings.aspectRatio} />
 		<ChipGroup
 			label="Lighting"
@@ -188,14 +232,34 @@ TATTOO_STATES,
 		randomize={randomizeDetails}
 		randomizeLabel="Randomize Details"
 	>
-		<MultiChipGroup label="Pose / angle" options={POSES} bind:values={settings.details} />
+		<MultiChipGroup
+			label="Pose / angle"
+			options={POSES}
+			bind:values={settings.details}
+			customsKey="poses"
+			phraseHint="Pose phrase, e.g. 'leaning over a balcony railing'"
+		/>
 		<MultiChipGroup
 			label="Accessories / clothing"
 			options={ACCESSORIES}
 			bind:values={settings.details}
+			customsKey="accessories"
+			phraseHint="Accessory or clothing, e.g. 'wearing a cropped band tee'"
 		/>
-		<MultiChipGroup label="Skin" options={SKIN_DETAILS} bind:values={settings.details} />
-		<MultiChipGroup label="Atmosphere" options={ATMOSPHERE} bind:values={settings.details} />
+		<MultiChipGroup
+			label="Skin"
+			options={SKIN_DETAILS}
+			bind:values={settings.details}
+			customsKey="skinDetails"
+			phraseHint="Skin detail, e.g. 'with subtle birthmarks on the shoulder'"
+		/>
+		<MultiChipGroup
+			label="Atmosphere"
+			options={ATMOSPHERE}
+			bind:values={settings.details}
+			customsKey="atmosphere"
+			phraseHint="Atmospheric detail, e.g. 'soft confetti falling around the subject'"
+		/>
 	</Collapsible>
 
 	<div class="row toggles">
