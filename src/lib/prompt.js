@@ -777,6 +777,222 @@ export const TATTOO_STYLES = [
 		value: 'micro-realism',
 		label: 'Micro-realism',
 		phrase: 'micro-realism tattoo style with tiny photographic detail'
+	},
+	{
+		value: 'old-school-sailor',
+		label: 'Old school',
+		phrase:
+			'Old school Sailor Jerry tattoo style with bold black outlines, simple shading, and red, green, yellow, and black flat colors'
+	},
+	{
+		value: 'new-school',
+		label: 'New school',
+		phrase:
+			'new school tattoo style with cartoonish exaggerated forms, vibrant saturated colors, and dramatic black outlines'
+	},
+	{
+		value: 'chicano',
+		label: 'Chicano',
+		phrase:
+			'Chicano tattoo style in fine black-and-grey, religious and cultural motifs, smooth single-needle shading'
+	},
+	{
+		value: 'celtic',
+		label: 'Celtic / knotwork',
+		phrase:
+			'Celtic tattoo style with interwoven knotwork, looping bands, and trinity-style braided patterns'
+	},
+	{
+		value: 'polynesian',
+		label: 'Polynesian',
+		phrase:
+			'Polynesian tattoo style with bold solid black geometric patterns derived from traditional Pacific motifs'
+	},
+	{
+		value: 'maori',
+		label: 'Maori',
+		phrase:
+			'Maori tā moko tattoo style with curving spirals, koru shapes, and bold solid black areas'
+	},
+	{
+		value: 'mandala',
+		label: 'Mandala',
+		phrase:
+			'mandala tattoo style with concentric symmetrical patterns, fine linework, and dotwork shading'
+	},
+	{
+		value: 'stick-and-poke',
+		label: 'Stick & poke',
+		phrase:
+			'stick-and-poke tattoo style with hand-poked dots and lines, slightly irregular spacing, raw and intimate feel'
+	},
+	{
+		value: 'surrealism',
+		label: 'Surrealism',
+		phrase:
+			'surrealist tattoo style with dreamlike juxtapositions, melting forms, and unexpected scale shifts'
+	},
+	{
+		value: 'biomechanical',
+		label: 'Biomechanical',
+		phrase:
+			'biomechanical tattoo style with mechanical-organic hybrids, exposed gears and pistons embedded in flesh, H. R. Giger inspired'
+	},
+	{
+		value: 'bio-organic',
+		label: 'Bio-organic',
+		phrase:
+			'bio-organic tattoo style with flowing organic forms suggesting muscle, bone and alien anatomy'
+	},
+	{
+		value: 'art-nouveau',
+		label: 'Art Nouveau',
+		phrase:
+			'Art Nouveau tattoo style with flowing organic linework, floral ornamentation, Mucha-inspired'
+	},
+	{
+		value: 'art-deco',
+		label: 'Art Deco',
+		phrase:
+			'Art Deco tattoo style with symmetrical geometric ornamentation, sunbursts, and stylized 1920s flourishes'
+	},
+	{
+		value: 'ignorant',
+		label: 'Ignorant style',
+		phrase:
+			'ignorant-style tattoo with deliberately crude childlike linework, raw and naïve feel'
+	},
+	{
+		value: 'lettering-script',
+		label: 'Lettering / script',
+		phrase:
+			'lettering tattoo style with elegant cursive script and refined letterforms'
+	},
+	{
+		value: 'gothic-blackletter',
+		label: 'Gothic / Old English',
+		phrase:
+			'gothic Old English blackletter tattoo style with heavy serifed type and ornamental flourishes'
+	},
+	{
+		value: 'anime-manga',
+		label: 'Anime / manga',
+		phrase:
+			'anime/manga tattoo style with crisp ink linework, halftone screentone shading, and stylized characters'
+	},
+	{
+		value: 'cartoon',
+		label: 'Cartoon',
+		phrase:
+			'cartoon tattoo style with bold simplified outlines, flat saturated colors, and exaggerated friendly forms'
+	},
+	{
+		value: 'monoline',
+		label: 'Monoline',
+		phrase:
+			'monoline tattoo style with a single uniform line weight throughout, no shading, continuous flow'
+	},
+	{
+		value: 'white-ink',
+		label: 'White ink',
+		phrase:
+			'white-ink-only tattoo style with subtle pale linework that reads as a delicate scar against the skin'
+	},
+	{
+		value: 'uv-blacklight',
+		label: 'UV / blacklight',
+		phrase:
+			'UV / blacklight tattoo style with fluorescent ink that glows under blacklight, nearly invisible in normal light'
+	},
+	{
+		value: 'norse-viking',
+		label: 'Norse / Viking',
+		phrase:
+			'Norse Viking tattoo style with knotwork, runes, and bold black ornamental patterns inspired by Scandinavian artifacts'
+	},
+	{
+		value: 'sumi-e',
+		label: 'Sumi-e ink wash',
+		phrase:
+			'sumi-e ink wash tattoo style with loose East Asian brush strokes, gradient washes, and confident negative space'
+	},
+	{
+		value: 'pop-art',
+		label: 'Pop art',
+		phrase:
+			'pop art tattoo style with halftone Ben-Day dots, bold primary colors, and Lichtenstein-inspired graphic punch'
+	},
+	{
+		value: 'pinup',
+		label: 'Pinup',
+		phrase:
+			'classic pinup tattoo style with vintage 1940s-50s glamour figures, bold outlines, and warm colors'
+	},
+	{
+		value: 'embroidery',
+		label: 'Embroidery / patch',
+		phrase:
+			'embroidery / patch tattoo style mimicking stitched thread textures and overlock-edge appliqué'
+	},
+	{
+		value: 'graffiti',
+		label: 'Graffiti / street',
+		phrase:
+			'graffiti street-art tattoo style with bold outlines, drips, fades, and aerosol-paint texture'
+	},
+	{
+		value: 'celestial',
+		label: 'Celestial',
+		phrase:
+			'celestial / cosmic tattoo style with stars, constellations, moon phases, and astrological symbols rendered in fine line and dotwork'
+	},
+	{
+		value: 'botanical-illustration',
+		label: 'Botanical',
+		phrase:
+			'botanical illustration tattoo style modeled on vintage scientific plant plates with precise linework and labeled detail'
+	},
+	{
+		value: 'anatomical',
+		label: 'Vintage anatomical',
+		phrase:
+			'vintage anatomical illustration tattoo style with cross-hatched medical-textbook engravings'
+	},
+	{
+		value: 'mehndi',
+		label: 'Mehndi / henna',
+		phrase:
+			'Mehndi henna-inspired tattoo style with intricate floral and paisley patterns drawn in fine continuous lines'
+	},
+	{
+		value: 'aztec',
+		label: 'Aztec / Mesoamerican',
+		phrase:
+			'Aztec / Mesoamerican tattoo style with stepped geometric motifs, glyphs, and imagery drawn from pre-Columbian codices'
+	},
+	{
+		value: 'egyptian',
+		label: 'Egyptian / hieroglyphic',
+		phrase:
+			'Egyptian hieroglyphic tattoo style with profile figures, ankhs, eye of Horus, and gold-and-lapis palette'
+	},
+	{
+		value: 'negative-space',
+		label: 'Negative space',
+		phrase:
+			'negative-space tattoo style where the design is defined by surrounding solid black, leaving the figure as un-inked skin'
+	},
+	{
+		value: 'glitch-cyber',
+		label: 'Glitch / cyber',
+		phrase:
+			'glitch / cyberpunk tattoo style with RGB-split datamosh artefacts, scanlines, and pixelated edges'
+	},
+	{
+		value: 'portrait-realism',
+		label: 'Portrait realism',
+		phrase:
+			'portrait realism tattoo style with photographic likeness, smooth tonal shading, and careful skin texture'
 	}
 ];
 
